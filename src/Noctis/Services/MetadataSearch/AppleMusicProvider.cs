@@ -120,8 +120,8 @@ public sealed partial class AppleMusicProvider : IMetadataProvider
 
     // ── Parsing (pure; tested against recorded responses) ──
 
-    [GeneratedRegex(@"/\d+x\d+bb\.(?:jpg|jpeg|png|webp)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex ArtworkSize();
+    private static readonly Regex _artworkSize = new(@"/\d+x\d+bb\.(?:jpg|jpeg|png|webp)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex ArtworkSize() => _artworkSize;
 
     /// <summary>Rewrites an Apple artwork URL ("…/100x100bb.jpg") to another square size.</summary>
     public static Uri? ResizeArtwork(string url, int size)

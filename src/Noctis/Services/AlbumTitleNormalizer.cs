@@ -19,18 +19,18 @@ public static partial class AlbumTitleNormalizer
         "special|collector|collectors|limited|super|platinum|definitive|complete|" +
         "explicit|clean|mono|stereo|remix(?:ed)? edition";
 
-    [GeneratedRegex(@"\s*[\(\[][^\)\]]*\b(?:" + EditionKeywords + @")\b[^\)\]]*[\)\]]",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex BracketedEdition();
+    private static readonly Regex _bracketedEdition = new(@"\s*[\(\[][^\)\]]*\b(?:" + EditionKeywords + @")\b[^\)\]]*[\)\]]",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex BracketedEdition() => _bracketedEdition;
 
-    [GeneratedRegex(@"\s*[-–—:]\s*[^-–—:]*\b(?:" + EditionKeywords + @")\b.*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex TrailingEdition();
+    private static readonly Regex _trailingEdition = new(@"\s*[-–—:]\s*[^-–—:]*\b(?:" + EditionKeywords + @")\b.*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex TrailingEdition() => _trailingEdition;
 
     // Trailing " - Single" / " - EP" markers that aren't covered by the keyword list.
-    [GeneratedRegex(@"\s*[-–—]\s*(?:single|ep)\s*$",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex TrailingSingleEp();
+    private static readonly Regex _trailingSingleEp = new(@"\s*[-–—]\s*(?:single|ep)\s*$",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex TrailingSingleEp() => _trailingSingleEp;
 
     /// <summary>
     /// Returns the album title with trailing edition/version descriptors removed. Falls back to

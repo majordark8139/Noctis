@@ -1,0 +1,44 @@
+<Project>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows' and '$(PkgAvalonia)' != ''">
+    <Reference Include="Avalonia.Base">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Base.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Controls">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Controls.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Markup">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Markup.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Markup.Xaml">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Markup.Xaml.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Dialogs">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Dialogs.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.DesignerSupport">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.DesignerSupport.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.OpenGL">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.OpenGL.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Vulkan">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Vulkan.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.Metal">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.Metal.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Avalonia.MicroCom">
+      <HintPath>$(PkgAvalonia)\lib\net8.0\Avalonia.MicroCom.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

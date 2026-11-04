@@ -22,8 +22,8 @@ public static partial class DeezerPlaylistLink
     public const int MaxPages = 50;
 
     // https://www.deezer.com/en/playlist/3155776842  ·  https://deezer.com/album/302127?utm=…
-    [GeneratedRegex(@"^https?://(?:www\.)?deezer\.com/(?:[a-z]{2}(?:-[a-z]{2})?/)?(playlist|album)/(\d+)", RegexOptions.IgnoreCase)]
-    private static partial Regex LinkPattern();
+    private static readonly Regex _linkPattern = new(@"^https?://(?:www\.)?deezer\.com/(?:[a-z]{2}(?:-[a-z]{2})?/)?(playlist|album)/(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex LinkPattern() => _linkPattern;
 
     /// <summary>True when <paramref name="text"/> is a Deezer playlist or album share link.</summary>
     public static bool TryParse(string? text, out DeezerLinkKind kind, out long id)

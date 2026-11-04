@@ -57,8 +57,8 @@ public static partial class LyricsSearchSelector
         ? Array.Empty<string>()
         : CreditJoins().Split(credit).Select(a => a.Trim()).Where(a => a.Length > 1).ToArray();
 
-    [GeneratedRegex(@"\s*(?:,|&|;|/|\+|\bfeat\b\.?|\bft\.|\bfeaturing\b)\s*", RegexOptions.IgnoreCase)]
-    private static partial Regex CreditJoins();
+    private static readonly Regex _creditJoinsRegex = new(@"\s*(?:,|&|;|/|\+|\bfeat\b\.?|\bft\.|\bfeaturing\b)\s*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex CreditJoins() => _creditJoinsRegex;
 
     /// <summary>
     /// Picks the best candidate that validates against the local track, skipping
@@ -105,12 +105,12 @@ public static partial class LyricsSearchSelector
     }
 
     // [mm:ss.xx] / <mm:ss.xx> timing tags and [ar:…]-style header tags.
-    [GeneratedRegex(@"\[[^\]]*\]|<\d{1,3}:\d{2}(?:[.:]\d{1,3})?>")]
-    private static partial Regex TimeTags();
+    private static readonly Regex _timeTagsRegex = new(@"\[[^\]]*\]|<\d{1,3}:\d{2}(?:[.:]\d{1,3})?>", RegexOptions.Compiled);
+    private static Regex TimeTags() => _timeTagsRegex;
 
     // "作曲 : Name", "Composer: Name" — a short label, then a colon.
-    [GeneratedRegex(@"^[^:：]{1,12}\s*[:：]")]
-    private static partial Regex CreditLine();
+    private static readonly Regex _creditLineRegex = new(@"^[^:：]{1,12}\s*[:：]", RegexOptions.Compiled);
+    private static Regex CreditLine() => _creditLineRegex;
 
     /// <summary>Rank of a word-synced answer — the top of <see cref="FormatRank"/>.</summary>
     public const int WordSyncedRank = 3;

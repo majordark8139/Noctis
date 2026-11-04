@@ -38,20 +38,20 @@ public static partial class MatchText
         "the", "a", "an", "of", "and", "from", "for", "by", "in", "on", "at", "to", "with", "s",
     };
 
-    [GeneratedRegex(@"\s*[\(\[]\s*(?:feat\.?|ft\.?|featuring|with)\s+[^\)\]]*[\)\]]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex BracketFeaturing();
+    private static readonly Regex _bracketFeaturing = new(@"\s*[\(\[]\s*(?:feat\.?|ft\.?|featuring|with)\s+[^\)\]]*[\)\]]", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex BracketFeaturing() => _bracketFeaturing;
 
-    [GeneratedRegex(@"\s+(?:feat\.?|ft\.?|featuring)\s+.*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex TrailingFeaturing();
+    private static readonly Regex _trailingFeaturing = new(@"\s+(?:feat\.?|ft\.?|featuring)\s+.*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex TrailingFeaturing() => _trailingFeaturing;
 
-    [GeneratedRegex(@"[\(\[]([^\)\]]*)[\)\]]", RegexOptions.CultureInvariant)]
-    private static partial Regex BracketSegment();
+    private static readonly Regex _bracketSegment = new(@"[\(\[]([^\)\]]*)[\)\]]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex BracketSegment() => _bracketSegment;
 
-    [GeneratedRegex(@"\s+[-–—]\s+([^-–—]+)$", RegexOptions.CultureInvariant)]
-    private static partial Regex DashSegment();
+    private static readonly Regex _dashSegment = new(@"\s+[-–—]\s+([^-–—]+)$", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex DashSegment() => _dashSegment;
 
-    [GeneratedRegex(@"\s*(?:,|&|;|/|\+|\bx\b|\band\b|\bfeat\.?|\bft\.?|\bfeaturing\b|\bwith\b|\bvs\.?)\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex ArtistSeparators();
+    private static readonly Regex _artistSeparators = new(@"\s*(?:,|&|;|/|\+|\bx\b|\band\b|\bfeat\.?|\bft\.?|\bfeaturing\b|\bwith\b|\bvs\.?)\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex ArtistSeparators() => _artistSeparators;
 
     /// <summary>Lower-case letters and digits only, diacritics folded ("Beyoncé" == "beyonce"),
     /// "&amp;" read as "and". Non-Latin scripts keep their letters.</summary>
@@ -132,8 +132,8 @@ public static partial class MatchText
         return true;
     }
 
-    [GeneratedRegex(@"[^\p{L}\p{N}]+", RegexOptions.CultureInvariant)]
-    private static partial Regex WordSplit();
+    private static readonly Regex _wordSplit = new(@"[^\p{L}\p{N}]+", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+    private static Regex WordSplit() => _wordSplit;
 
     // "2011", "10th", "25", "1st" — dates and ordinals of editions.
     private static bool IsNumberish(string w)

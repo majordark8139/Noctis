@@ -110,11 +110,11 @@ public static partial class TimedLyricsBuilder
     private static readonly TimeSpan EditSlack = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan DefaultWordSpan = TimeSpan.FromMilliseconds(420);
 
-    [GeneratedRegex(@"<([^<>]*)>")]
-    private static partial Regex AnyTag();
+    private static readonly Regex _anyTag = new(@"<([^<>]*)>", RegexOptions.Compiled);
+    private static Regex AnyTag() => _anyTag;
 
-    [GeneratedRegex(@"^\d{1,3}:[0-5]\d(?:[.:]\d{1,3})?$")]
-    private static partial Regex TagTime();
+    private static readonly Regex _tagTime = new(@"^\d{1,3}:[0-5]\d(?:[.:]\d{1,3})?$", RegexOptions.Compiled);
+    private static Regex TagTime() => _tagTime;
 
     /// <summary>
     /// Reads a hand-edited <see cref="BuildElrcBody"/> back into timed words, through

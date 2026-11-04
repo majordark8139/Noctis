@@ -16,8 +16,8 @@ public static partial class EnhancedLrcParser
 {
     // Inline word tag: <mm:ss.xx>, <mm:ss:xx> or <mm:ss>; the seconds may run past 59 as in
     // LrcParser's line stamps (<00:168.80>). Captures the time body.
-    [GeneratedRegex(@"<(\d{1,3}:\d{2,3}(?:[.:]\d{1,3})?)>")]
-    private static partial Regex WordTagRegex();
+    private static readonly Regex _wordTagRegex = new(@"<(\d{1,3}:\d{2,3}(?:[.:]\d{1,3})?)>", RegexOptions.Compiled);
+    private static Regex WordTagRegex() => _wordTagRegex;
 
     /// <summary>
     /// Upper bound on timed words in one line, and in one line's background row. Each

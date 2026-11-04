@@ -487,8 +487,8 @@ public partial class LrcRedLyricsService : ILrcRedLyricsService
         : a.Delta < b.Delta;
 
     // An ISRC is 12 letters and digits; the file URL is built from it, never taken from the response.
-    [GeneratedRegex("^[A-Za-z0-9]{12}$")]
-    private static partial Regex IsrcPattern();
+    private static readonly Regex _isrcPattern = new("^[A-Za-z0-9]{12}$", RegexOptions.Compiled);
+    private static Regex IsrcPattern() => _isrcPattern;
 
     private static string? Str(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.String
