@@ -3426,7 +3426,7 @@ public class LibraryService : ILibraryService
                 $"{pass.Name} backfill: done — {checkedCount:N0} file(s) checked, {applied:N0} found" +
                 (resumed > 0 ? $" (+{resumed:N0} from the last run)" : "") +
                 (phone.Count > 0 ? $", {phone.Count:N0} phone track(s) marked for re-scan" : "") +
-                $", {System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalSeconds:0.0} s");
+                $", {(double)(System.Diagnostics.Stopwatch.GetTimestamp() - started) / System.Diagnostics.Stopwatch.Frequency:0.0} s");
             return stamped;
         }
         catch (Exception ex)

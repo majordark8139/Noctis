@@ -90,6 +90,9 @@ public class PersistenceService : IPersistenceService
     /// </summary>
     private static void TryRestrictToOwner(string path, bool isDirectory)
     {
+#if !NET6_0_OR_GREATER || WINDOWS
+        return;
+#else
         if (OperatingSystem.IsWindows()) return;
         try
         {
@@ -103,6 +106,7 @@ public class PersistenceService : IPersistenceService
             // Filesystem may not support Unix modes (e.g. a mounted exFAT volume).
             // Losing the hardening is not worth failing the save over.
         }
+#endif
     }
 
     // ── Settings ──────────────────────────────────────────────

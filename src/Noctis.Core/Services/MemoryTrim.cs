@@ -82,7 +82,7 @@ public static class MemoryTrim
             // decommits the free regions (committed 66 -> 51 MB, private 365 -> 349 MB) for
             // the same pause (58 ms). It compacts the LOH too, so CompactOnce is not needed.
             var committedBefore = GC.GetGCMemoryInfo().TotalCommittedBytes;
-            GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true);
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
             var after = GC.GetTotalMemory(false);
             var committedAfter = GC.GetGCMemoryInfo().TotalCommittedBytes;
             DebugLog.Write("Memory",

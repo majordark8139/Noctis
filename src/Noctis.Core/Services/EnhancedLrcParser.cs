@@ -60,7 +60,7 @@ public static partial class EnhancedLrcParser
         if (i < body.Length && body[i] == 'v')
         {
             var j = i + 1;
-            while (j < body.Length && char.IsAsciiDigit(body[j])) j++;
+            while (j < body.Length && body[j] >= '0' && body[j] <= '9') j++;
             if (j > i + 1 && j < body.Length && body[j] == ':')
             {
                 var voice = body[(i + 1)..j] switch

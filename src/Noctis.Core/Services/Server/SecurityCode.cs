@@ -13,7 +13,7 @@ public static class SecurityCode
         if (string.IsNullOrEmpty(fingerprint)) return string.Empty;
         var hex = fingerprint.Replace(":", "", StringComparison.Ordinal).Replace(" ", "", StringComparison.Ordinal).ToUpperInvariant();
         // Not a fingerprint (no colons, odd length): shown as it came.
-        if (hex.Length % 4 != 0 || !hex.All(char.IsAsciiHexDigit)) return fingerprint;
+        if (hex.Length % 4 != 0 || !hex.All(c => (c >= '0' && c <= '9') || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))) return fingerprint;
         var groups = hex.Chunk(4).Select(g => new string(g));
         return string.Join("\n", groups.Chunk(4).Select(line => string.Join(" ", line)));
     }

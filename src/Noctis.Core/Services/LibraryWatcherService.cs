@@ -248,7 +248,7 @@ public sealed class LibraryWatcherService : ILibraryWatcherService
                     RecurseSubdirectories = true,
                     MaxRecursionDepth = 64,
                     IgnoreInaccessible = true,
-                    AttributesToSkip = FileAttributes.None
+                    AttributesToSkip = (FileAttributes)0
                 })
                 .Where(IsAudio)
                 .ToList();

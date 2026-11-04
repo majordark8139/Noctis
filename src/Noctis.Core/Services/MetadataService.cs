@@ -919,9 +919,13 @@ public class MetadataService : IMetadataService
     /// <summary>Copies Unix mode bits from source to destination. No-op on Windows.</summary>
     private static void TryCopyUnixFileMode(string source, string destination)
     {
+#if !NET6_0_OR_GREATER || WINDOWS
+        return;
+#else
         if (OperatingSystem.IsWindows()) return;
         try { File.SetUnixFileMode(destination, File.GetUnixFileMode(source)); }
         catch { /* filesystem may not support Unix modes */ }
+#endif
     }
 
     // Both writers go through SaveTagsAtomically: an in-place file.Save() on
