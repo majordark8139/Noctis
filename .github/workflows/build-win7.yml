@@ -27,7 +27,7 @@ jobs:
             8.0.x
 
       - name: Restore dependencies
-        run: dotnet restore src/Noctis/Noctis.csproj
+        run: dotnet restore src/Noctis/Noctis.csproj -r win-x64
 
       - name: Publish self-contained Windows 7 x64 package
         run: dotnet publish src/Noctis/Noctis.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o ./dist/noctis-win7

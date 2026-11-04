@@ -12,7 +12,8 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifiers>win-x64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <AssetTargetFallback>$(AssetTargetFallback);net8.0;net7.0</AssetTargetFallback>
     <ApplicationIcon Condition="$([MSBuild]::IsOSPlatform('Windows')) And Exists('Assets\Icons\Noctis.ico')">Assets\Icons\Noctis.ico</ApplicationIcon>
     <AssemblyName>Noctis</AssemblyName>
     <RootNamespace>Noctis</RootNamespace>

@@ -6,6 +6,7 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <LangVersion>latest</LangVersion>
+    <AssetTargetFallback>$(AssetTargetFallback);net8.0;net7.0</AssetTargetFallback>
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

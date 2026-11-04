@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <AssetTargetFallback>$(AssetTargetFallback);net8.0;net7.0</AssetTargetFallback>
+    <NoWarn>$(NoWarn);NU1701;NU1702</NoWarn>
+  </PropertyGroup>
+</Project>
