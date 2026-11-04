@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -250,6 +250,11 @@ internal class Program
             // room to spare; on integrated GPUs and the software path this cache is
             // host RAM, which is why it is not larger.
             .With(new SkiaOptions { MaxGpuResourceSizeBytes = 128L * 1024 * 1024 })
+            .With(new Win32PlatformOptions
+            {
+                RenderingMode = new[] { Win32RenderingMode.DirectX11, Win32RenderingMode.AngleEgl },
+                CompositionMode = new[] { Win32CompositionMode.LowLatencyDxgiSwapChain, Win32CompositionMode.RedirectionSurface }
+            })
             .LogToTrace();
 
         // LogToTrace installed its sink; wrap it so Avalonia's own warnings and

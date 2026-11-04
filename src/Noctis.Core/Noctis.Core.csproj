@@ -7,7 +7,9 @@
          references it; so does the headless noctis-server host, which is why nothing
          in here may depend on Avalonia, LibVLC, NAudio, Skia or Whisper. Plain net10.0
          on every OS (the app's Windows TFM exists only for WinRT projections). -->
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Noctis</RootNamespace>
@@ -26,6 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="PolySharp" Version="*" PrivateAssets="all" />
     <!-- Models are ObservableObjects (bindable in the app; inert on the server). -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />

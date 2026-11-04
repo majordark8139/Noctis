@@ -28,6 +28,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         WindowTransparencyLevel.AcrylicBlur,
         WindowTransparencyLevel.Mica,
         WindowTransparencyLevel.Blur,
+        WindowTransparencyLevel.Transparent,
         WindowTransparencyLevel.None,
     };
 
@@ -375,6 +376,14 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         Win10DarkTitleBar.Apply(this);
         ActualThemeVariantChanged += (_, _) => Win10DarkTitleBar.Apply(this);
 
+        // Native Windows 7 Aero Glass Bridge: extend glass into client area on NT 6.1
+        Opened += (_, _) => Win7AeroGlassBridge.Apply(this);
+        if (Win7AeroGlassBridge.IsWindows7OrLower)
+        {
+            Win7AeroGlassBridge.Apply(this);
+            ActualThemeVariantChanged += (_, _) => Win7AeroGlassBridge.Apply(this);
+        }
+
         // Initialize the application once the window is fully loaded.
         //
         // The whole body is guarded. This is an async void handler running *inside*
@@ -459,8 +468,13 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
             // Every GlassPanel (sidebar, Settings sheet, island) drops back to its plain fill.
             AppGlass.Clear();
             QueueDrawerGlass.Apply(_queuePopupPanel, _queueGlass, glassActive: false);
+            if (Win7AeroGlassBridge.IsWindows7OrLower)
+                Win7AeroGlassBridge.Apply(this);
             return;
         }
+
+        if (Win7AeroGlassBridge.IsWindows7OrLower)
+            Win7AeroGlassBridge.Apply(this);
 
         // Resolve the active theme's surface colors from Application-level resources
         // (the window-scoped glass overlay never shadows those), so every theme —
