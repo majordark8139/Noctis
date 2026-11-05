@@ -6,7 +6,7 @@
         x:Class="Noctis.Views.ConfirmationDialog"
         Title="{loc:T Confirmation.Confirm}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">

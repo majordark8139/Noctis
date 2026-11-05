@@ -9,7 +9,7 @@
         x:DataType="vm:WrapViewModel"
         Title="{loc:T Wrap.NoctisWrap}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

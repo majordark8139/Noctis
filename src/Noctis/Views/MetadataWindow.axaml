@@ -9,7 +9,7 @@
         x:DataType="vm:MetadataViewModel"
         Title="{loc:T Metadata.Metadata}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">
@@ -617,7 +617,7 @@
                                           IsEditable="True"
                                           ItemsSource="{Binding GenreOptions}"
                                           Text="{Binding Genre, Mode=TwoWay}"
-                                          PlaceholderText="{Binding GenreWatermark}"
+                                          Watermark="{Binding GenreWatermark}"
                                           ToolTip.Tip="{loc:T Metadata.GenreTip}"
                                           HorizontalAlignment="Stretch" />
                             </StackPanel>

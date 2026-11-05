@@ -7,7 +7,7 @@
         x:DataType="vm:PlaylistImportViewModel"
         Title="{loc:T Import.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -222,7 +222,7 @@
                         <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:PlaylistImportViewModel+Choice">
+                        <DataTemplate x:DataType="vm:Choice">
                             <Button Classes="pill-secondary pi-choice"
                                     Command="{Binding $parent[Window].((vm:PlaylistImportViewModel)DataContext).AddSongCommand}"
                                     CommandParameter="{Binding}"
@@ -240,7 +240,7 @@
                         <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:PlaylistImportViewModel+Choice">
+                        <DataTemplate x:DataType="vm:Choice">
                             <Border Classes="pi-chip" Margin="0,0,6,6" Padding="10,2,4,2">
                                 <StackPanel Orientation="Horizontal" Spacing="6">
                                     <Ellipse />
@@ -317,7 +317,7 @@
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:PlaylistImportViewModel+ImportRow">
+                        <DataTemplate x:DataType="vm:ImportRow">
                             <Border Classes="pill-well pi-row" Classes.missing="{Binding IsMissing}"
                                     Classes.out="{Binding !IsIncluded}"
                                     CornerRadius="16" Padding="16,9,12,9" Margin="0,0,0,6">
@@ -374,9 +374,9 @@
                                             <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:PlaylistImportViewModel+Choice">
+                                            <DataTemplate x:DataType="vm:Choice">
                                                 <Button Classes="pill-secondary pi-choice"
-                                                        Command="{Binding $parent[ItemsControl].((vm:PlaylistImportViewModel+ImportRow)DataContext).PickCommand}"
+                                                        Command="{Binding $parent[ItemsControl].((vm:ImportRow)DataContext).PickCommand}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip.Tip="{loc:T Import.UseThisSong}">
                                                     <TextBlock Text="{Binding Label}" />
@@ -400,9 +400,9 @@
                                             <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                                         </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate x:DataType="vm:PlaylistImportViewModel+Choice">
+                                            <DataTemplate x:DataType="vm:Choice">
                                                 <Button Classes="pill-secondary pi-choice"
-                                                        Command="{Binding $parent[ItemsControl].((vm:PlaylistImportViewModel+ImportRow)DataContext).PickCommand}"
+                                                        Command="{Binding $parent[ItemsControl].((vm:ImportRow)DataContext).PickCommand}"
                                                         CommandParameter="{Binding}"
                                                         ToolTip.Tip="{loc:T Import.UseThisSong}">
                                                     <TextBlock Text="{Binding Label}" />

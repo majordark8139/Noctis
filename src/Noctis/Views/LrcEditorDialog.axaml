@@ -8,7 +8,7 @@
         x:DataType="vm:LrcEditorViewModel"
         Title="{loc:T LrcEditor.SyncLyrics}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">

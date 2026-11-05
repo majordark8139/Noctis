@@ -7,7 +7,7 @@
         x:DataType="vm:OrganizeFilesViewModel"
         Title="{loc:T OrganizeFiles.OrganizeFiles}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

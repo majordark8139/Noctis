@@ -5,7 +5,7 @@
         x:Class="Noctis.Views.ArtworkViewerDialog"
         Title="{loc:T ArtworkViewer.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">

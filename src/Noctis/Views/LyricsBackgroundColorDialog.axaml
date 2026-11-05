@@ -7,7 +7,7 @@
         x:DataType="vm:LyricsViewModel"
         Title="{loc:T PlaybackBar.BackgroundColor}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

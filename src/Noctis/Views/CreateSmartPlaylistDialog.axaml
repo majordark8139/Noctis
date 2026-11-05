@@ -9,7 +9,7 @@
         x:DataType="vm:CreateSmartPlaylistDialogViewModel"
         Title="{loc:T CreateSmartPlaylist.CreateSmartPlaylist}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

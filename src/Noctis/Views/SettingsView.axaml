@@ -5617,7 +5617,7 @@
                         <TextBox Grid.Column="0" Classes="settings-search"
                                  AutomationProperties.Name="{loc:T Settings.AddArtistNameEG}"
                                  Text="{Binding NewArtistProtectedName, Mode=TwoWay}"
-                                 PlaceholderText="{loc:T Settings.AddArtistNameEG}"
+                                 Watermark="{loc:T Settings.AddArtistNameEG}"
                                  Padding="14,6"
                                  MaxWidth="320" HorizontalAlignment="Left" MinWidth="220">
                             <TextBox.KeyBindings>
@@ -5679,7 +5679,7 @@
                         <TextBox Grid.Column="0" Classes="settings-search"
                                  AutomationProperties.Name="{loc:T Settings.AddWordEG}"
                                  Text="{Binding NewArtistSortIgnoredWord, Mode=TwoWay}"
-                                 PlaceholderText="{loc:T Settings.AddWordEG}"
+                                 Watermark="{loc:T Settings.AddWordEG}"
                                  Padding="14,6"
                                  MaxWidth="320" HorizontalAlignment="Left" MinWidth="220">
                             <TextBox.KeyBindings>

@@ -16,7 +16,7 @@
         CanResize="True"
         helpers:UiScale.Exclude="True"
         Topmost="True"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         WindowStartupLocation="Manual">
 
