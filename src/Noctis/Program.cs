@@ -34,6 +34,14 @@ internal class Program
                 {
                     System.Net.ServicePointManager.SecurityProtocol |=
                         System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls13;
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) =>
+                    {
+                        if (errors == System.Net.Security.SslPolicyErrors.None)
+                            return true;
+                        if (errors == System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors)
+                            return true;
+                        return false;
+                    };
                 }
                 catch { }
             }

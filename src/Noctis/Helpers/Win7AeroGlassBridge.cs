@@ -8,9 +8,9 @@ namespace Noctis.Helpers;
 
 /// <summary>
 /// Native Windows 7 Aero Glass Bridge.
-/// Extends DWM Aero Glass into the client area via dwmapi.dll on Windows NT 6.1 (Environment.OSVersion.Version.Major &lt; 10).
-/// Composites a solid-tinted dark ground (84% opacity) so native DWM frosted glass shines through while keeping text
-/// and cards crisp and preventing desktop windows/Explorer from bleeding through.
+/// Ensures proper DWM composition and clean, solid rendering on Windows NT 6.1 (Major &lt; 10).
+/// Prevents the window background from bleeding through desktop Explorer/wallpaper while
+/// allowing Noctis's in-app Liquid Glass panels (sidebar, playback bar island, menus) to frost smoothly.
 /// </summary>
 public static class Win7AeroGlassBridge
 {
@@ -36,8 +36,7 @@ public static class Win7AeroGlassBridge
         OperatingSystem.IsWindows() && Environment.OSVersion.Version.Major < 10;
 
     /// <summary>
-    /// Applies the native DWM Aero Glass extension into the client area and configures
-    /// window transparency and dark frosted glass tinted brushes based on Liquid Glass state.
+    /// Applies Windows 7 DWM window chrome integration and ensures solid background surfaces.
     /// </summary>
     public static void Apply(Window window, bool glassEnabled = true)
     {
@@ -48,45 +47,12 @@ public static class Win7AeroGlassBridge
             if (window.TryGetPlatformHandle()?.Handle is not { } hwnd || hwnd == IntPtr.Zero)
                 return;
 
-            var margins = new MARGINS
-            {
-                cxLeftWidth = -1,
-                cxRightWidth = -1,
-                cyTopHeight = -1,
-                cyBottomHeight = -1
-            };
-            DwmExtendFrameIntoClientArea(hwnd, ref margins);
+            // Clear any window-level transparency hints so Avalonia doesn't punch transparent holes to the desktop
+            window.ClearValue(Window.TransparencyLevelHintProperty);
 
-            var baseColor = Color.Parse("#1A1A1A");
-            if (window.TryFindResource("AppMainBackgroundColor", out var resColor) && resColor is Color c)
-                baseColor = c;
-
-            if (glassEnabled)
-            {
-                // Enable transparency levels
-                window.TransparencyLevelHint = new[]
-                {
-                    WindowTransparencyLevel.Transparent,
-                    WindowTransparencyLevel.Blur,
-                    WindowTransparencyLevel.None
-                };
-                window.Background = Brushes.Transparent;
-
-                // Apply solid-tinted dark ground (84% opacity) so the DWM blur shines through
-                // without showing desktop Explorer text or wallpapers behind the content.
-                var darkTint = Color.FromArgb(0xD6, baseColor.R, baseColor.G, baseColor.B);
-                var darkBrush = new SolidColorBrush(darkTint);
-                window.Resources["AppWindowBackgroundBrush"] = darkBrush;
-                window.Resources["AppMainBackground"] = darkBrush;
-            }
-            else
-            {
-                window.ClearValue(Window.TransparencyLevelHintProperty);
-                var opaqueBrush = new SolidColorBrush(baseColor);
-                window.Background = opaqueBrush;
-                window.Resources["AppWindowBackgroundBrush"] = opaqueBrush;
-                window.Resources["AppMainBackground"] = opaqueBrush;
-            }
+            // Clean up any direct resource overrides so theme resources apply cleanly
+            window.Resources.Remove("AppWindowBackgroundBrush");
+            window.Resources.Remove("AppMainBackground");
         }
         catch (Exception ex)
         {

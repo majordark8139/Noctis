@@ -482,42 +482,51 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         var main = ResolveThemeColor("AppMainBackground", Color.Parse("#252525"));
         var sidebar = ResolveThemeColor("AppSidebarBackground", Color.Parse("#141414"));
 
-        // One shared array: a new, equal array on every glass refresh is re-applied by
-        // Avalonia, and macOS drops a repeated level to Opaque (see MiniPlayerWindow).
-        TransparencyLevelHint = GlassTransparencyLevels;
-
-        if (acrylic != null)
+        if (!Win7AeroGlassBridge.IsWindows7OrLower)
         {
-            // Fresh material instance: assigning the Material property is guaranteed
-            // to invalidate, and the tint follows the active theme's surface color.
-            acrylic.Material = new ExperimentalAcrylicMaterial
+            // One shared array: a new, equal array on every glass refresh is re-applied by
+            // Avalonia, and macOS drops a repeated level to Opaque (see MiniPlayerWindow).
+            TransparencyLevelHint = GlassTransparencyLevels;
+
+            if (acrylic != null)
             {
-                BackgroundSource = AcrylicBackgroundSource.Digger,
-                TintColor = main,
-                TintOpacity = 0.65,
-                MaterialOpacity = 0.35,
-                FallbackColor = main,
-            };
-            acrylic.IsVisible = true;
-        }
+                // Fresh material instance: assigning the Material property is guaranteed
+                // to invalidate, and the tint follows the active theme's surface color.
+                acrylic.Material = new ExperimentalAcrylicMaterial
+                {
+                    BackgroundSource = AcrylicBackgroundSource.Digger,
+                    TintColor = main,
+                    TintOpacity = 0.65,
+                    MaterialOpacity = 0.35,
+                    FallbackColor = main,
+                };
+                acrylic.IsVisible = true;
+            }
 
-        // Translucent surface variants. The acrylic tint underneath carries most of
-        // the readability: in the content area the window, content-grid and page
-        // layers stack (≈73% net) — text always sits on a solid-enough frosted surface.
-        // AppSidebarBackground stays the theme's own brush: every right-click menu,
-        // flyout and tooltip paints with it, and at 55% they were see-through with no
-        // blur behind them (GitHub #81). The sidebar pill frosts via AppGlass instead.
-        var surfaceOpacity = Win7AeroGlassBridge.IsWindows7OrLower ? 0.84 : 0.35;
-        _liquidGlassOverlay = new ResourceDictionary
+            // Translucent surface variants. The acrylic tint underneath carries most of
+            // the readability: in the content area the window, content-grid and page
+            // layers stack (≈73% net) — text always sits on a solid-enough frosted surface.
+            // AppSidebarBackground stays the theme's own brush: every right-click menu,
+            // flyout and tooltip paints with it, and at 55% they were see-through with no
+            // blur behind them (GitHub #81). The sidebar pill frosts via AppGlass instead.
+            _liquidGlassOverlay = new ResourceDictionary
+            {
+                ["AppMainBackground"] = new SolidColorBrush(main, 0.35),
+                // The window root paints AppWindowBackgroundBrush (a gradient on some themes);
+                // while glass is on it goes translucent with the content surface.
+                ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, 0.35),
+                // Accent action buttons deliberately keep their solid accent fill: frosting
+                // them (2026-08-06) read as washed-out, muddy buttons and was reverted 09-07.
+            };
+            Resources.MergedDictionaries.Add(_liquidGlassOverlay);
+        }
+        else
         {
-            ["AppMainBackground"] = new SolidColorBrush(main, surfaceOpacity),
-            // The window root paints AppWindowBackgroundBrush (a gradient on some themes);
-            // while glass is on it goes translucent with the content surface.
-            ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, surfaceOpacity),
-            // Accent action buttons deliberately keep their solid accent fill: frosting
-            // them (2026-08-06) read as washed-out, muddy buttons and was reverted 09-07.
-        };
-        Resources.MergedDictionaries.Add(_liquidGlassOverlay);
+            // On Windows 7, keep the main window background solid to prevent desktop/Explorer bleed-through,
+            // while in-app GlassPanel hosts (sidebar, settings, playback bar) frost the app content beneath them.
+            ClearValue(TransparencyLevelHintProperty);
+            if (acrylic != null) acrylic.IsVisible = false;
+        }
 
         // In-app frost: GlassPanel hosts (sidebar, Settings sheet, playback island) blur the
         // app content beneath them. Dialog windows are left alone: an AcrylicBlur hint on a
