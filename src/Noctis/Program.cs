@@ -267,7 +267,6 @@ internal class Program
             .With(new Win32PlatformOptions
             {
                 OverlayPopups = true,
-                AllowEglInitialization = true,
                 RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Wgl, Win32RenderingMode.Software },
                 CompositionMode = new[] { Win32CompositionMode.RedirectionSurface }
             })

@@ -367,12 +367,12 @@ public class ArtistImageService
                 catch (OperationCanceledException)
                 {
                     // Download watchdog fired (or shutdown) — don't burn the cooldown.
-                    DebugLogger.Warn(DebugLogger.Category.Network, "ArtistImage", $"Timed out for '{artist.Name}'");
+                    DebugLog.Write("ArtistImage", $"Timed out for '{artist.Name}'");
                     continue;
                 }
                 catch (Exception ex)
                 {
-                    DebugLogger.Warn(DebugLogger.Category.Network, "ArtistImage", $"Failed for '{artist.Name}': {ex.Message}");
+                    DebugLog.Write("ArtistImage", $"Failed for '{artist.Name}': {ex.Message}");
                 }
 
                 if (TryUsePrimaryArtistImageFallback(artist, artistsByName, onImageReady))
