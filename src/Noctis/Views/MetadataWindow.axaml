@@ -617,7 +617,7 @@
                                           IsEditable="True"
                                           ItemsSource="{Binding GenreOptions}"
                                           Text="{Binding Genre, Mode=TwoWay}"
-                                          Watermark="{Binding GenreWatermark}"
+                                          PlaceholderText="{Binding GenreWatermark}"
                                           ToolTip.Tip="{loc:T Metadata.GenreTip}"
                                           HorizontalAlignment="Stretch" />
                             </StackPanel>
