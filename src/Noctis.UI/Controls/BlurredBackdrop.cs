@@ -399,7 +399,7 @@ public class BlurredBackdrop : Panel
         // each one retook the whole app back to back (30-57 captures for a one-second drag),
         // so the thumb stuttered. A request within RefreshDelay of the previous one is such a
         // stream: it waits for the stream to go quiet and retakes once.
-        var streaming = _lastSoonRequest != 0 && Stopwatch.GetElapsedTime(_lastSoonRequest) < RefreshDelay;
+        var streaming = _lastSoonRequest != 0 && TimeSpan.FromSeconds((double)(Stopwatch.GetTimestamp() - _lastSoonRequest) / Stopwatch.Frequency) < RefreshDelay;
         _lastSoonRequest = Stopwatch.GetTimestamp();
         _soonQueued = !streaming;
         _ = RefreshAfterQuietAsync(++_refreshStamp, soon: !streaming);

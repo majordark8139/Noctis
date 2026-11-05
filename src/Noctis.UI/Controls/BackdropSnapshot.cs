@@ -152,7 +152,7 @@ public static class BackdropSnapshot
                 // supported for this bitmap type"); a PNG round-trip of the quarter-size
                 // image (~1 ms) gives a decoded bitmap that can, on every backend. Same
                 // route DominantColorExtractor takes for its RenderTargetBitmaps.
-                snapshot.Save(png, PngBitmapEncoderOptions.Default);
+                snapshot.Save(png);
                 png.Position = 0;
                 using var raw = new Bitmap(png);
                 w = raw.PixelSize.Width;
