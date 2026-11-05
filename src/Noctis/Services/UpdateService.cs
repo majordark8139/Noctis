@@ -554,12 +554,14 @@ public sealed class UpdateService
         if (requireChecksums && (!IsConfiguredRepoAssetUrl(url) || !IsConfiguredRepoAssetUrl(checksumsUrl)))
             throw new InvalidOperationException("Refusing an update asset from outside heartached/Noctis.");
 
+#if !WINDOWS && NET7_0_OR_GREATER
         if (destinationPath is null && OperatingSystem.IsLinux())
         {
             const UnixFileMode ownerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
             Directory.CreateDirectory(InstallerDirectory, ownerOnly);
             File.SetUnixFileMode(InstallerDirectory, ownerOnly); // a folder that already existed too
         }
+#endif
 
         // Random per-run filename: a fixed predictable path invited a same-user
         // verify-then-launch swap (TOCTOU) on the elevated installer.
@@ -896,7 +898,8 @@ public sealed class UpdateService
             // manifest check, so nothing swapped in since the download can execute.
             string actual;
             using (var fs = File.OpenRead(path))
-                actual = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(fs)).ToLowerInvariant();
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+                actual = Convert.ToHexString(sha.ComputeHash(fs)).ToLowerInvariant();
             if (!string.Equals(actual, pending.Sha256, StringComparison.OrdinalIgnoreCase))
             {
                 DiscardPending(store, state, pending, owned: true, "failed SHA-256 re-check", block: true, notify: true);

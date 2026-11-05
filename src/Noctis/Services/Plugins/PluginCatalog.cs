@@ -496,7 +496,8 @@ public sealed class PluginCatalogClient
     internal static async Task<string> ComputeSha256Async(string path, CancellationToken ct)
     {
         await using var fs = File.OpenRead(path);
-        var hash = await SHA256.HashDataAsync(fs, ct).ConfigureAwait(false);
+        using var sha = SHA256.Create();
+        var hash = await Task.Run(() => sha.ComputeHash(fs), ct).ConfigureAwait(false);
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 

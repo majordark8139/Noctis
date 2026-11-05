@@ -43,7 +43,7 @@ public static class ServerCertificate
                 // another user or machine unprotects to nothing and fails the load below.
                 var stored = File.ReadAllText(keyFile).Trim();
                 var current = PersistenceService.UnprotectSecret(stored);
-                var cert = X509CertificateLoader.LoadPkcs12FromFile(pfx, current, KeyFlags);
+                var cert = new X509Certificate2(pfx, current, KeyFlags);
                 if (cert.NotAfter > DateTime.UtcNow.AddDays(30) && cert.HasPrivateKey)
                 {
                     // Only a plain-text file is rewritten: DPAPI output differs on every call,
@@ -97,7 +97,7 @@ public static class ServerCertificate
         // Round-trip through PKCS#12 so the private key is attached in a form Kestrel accepts on every OS.
         var pfx = cert.Export(X509ContentType.Pkcs12);
         cert.Dispose();
-        return X509CertificateLoader.LoadPkcs12(pfx, null, KeyFlags);
+        return new X509Certificate2(pfx, (string?)null, KeyFlags);
     }
 
     /// <summary>"AB:CD:…" SHA-256 fingerprint the phone pins.</summary>
@@ -107,6 +107,8 @@ public static class ServerCertificate
     private static void RestrictToOwner(string path)
     {
         if (OperatingSystem.IsWindows()) return; // per-user data folder already; ACLs are inherited from %LOCALAPPDATA%
+#if NET7_0_OR_GREATER
         try { File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite); } catch { /* best effort */ }
+#endif
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
@@ -8543,7 +8543,8 @@ public partial class SettingsViewModel : ViewModelBase
             try
             {
                 await using var fs = File.OpenRead(pending.InstallerPath);
-                var hash = Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(fs)).ToLowerInvariant();
+                using var sha = System.Security.Cryptography.SHA256.Create();
+                var hash = Convert.ToHexString(await Task.Run(() => sha.ComputeHash(fs))).ToLowerInvariant();
                 match = string.Equals(hash, pending.Sha256, StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)

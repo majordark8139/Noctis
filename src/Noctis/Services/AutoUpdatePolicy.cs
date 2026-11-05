@@ -84,11 +84,13 @@ public sealed class AutoUpdateStore
         Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
         var tmp = FilePath + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(state, WriteOptions));
+#if !WINDOWS && NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             try { File.SetUnixFileMode(tmp, UnixFileMode.UserRead | UnixFileMode.UserWrite); }
             catch { /* best effort on filesystems without POSIX modes */ }
         }
+#endif
         File.Move(tmp, FilePath, overwrite: true);
     }
 

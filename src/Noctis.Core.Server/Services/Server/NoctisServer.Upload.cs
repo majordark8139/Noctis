@@ -189,7 +189,8 @@ public sealed partial class NoctisServer
                 var info = new FileInfo(path);
                 if (!info.Exists || info.Length != length) continue;
                 using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete, 81920);
-                if (CryptographicOperations.FixedTimeEquals(SHA256.HashData(stream), digest)) return path;
+                using var sha256 = SHA256.Create();
+                if (CryptographicOperations.FixedTimeEquals(sha256.ComputeHash(stream), digest)) return path;
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
         }

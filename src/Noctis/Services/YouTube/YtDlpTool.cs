@@ -151,11 +151,13 @@ public sealed class YtDlpTool
         }
         File.Move(temp, InstalledPath, overwrite: true);
         _versionCache = null;
+#if !WINDOWS && NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             try { File.SetUnixFileMode(InstalledPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute); }
             catch { }
         }
+#endif
         progress?.Report(1);
         Log("YtDlp.Installed", InstalledPath);
         return InstalledPath;

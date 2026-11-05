@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace Noctis.Helpers;
+namespace System.IO;
 
 public static class Net6StreamExtensions
 {
