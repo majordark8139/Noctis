@@ -32,16 +32,9 @@ internal class Program
                 Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
                 try
                 {
-                    System.Net.ServicePointManager.SecurityProtocol |=
-                        System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls13;
-                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) =>
-                    {
-                        if (errors == System.Net.Security.SslPolicyErrors.None)
-                            return true;
-                        if (errors == System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors)
-                            return true;
-                        return false;
-                    };
+                    System.Net.ServicePointManager.SecurityProtocol =
+                        System.Net.SecurityProtocolType.Tls12;
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
                 }
                 catch { }
             }
@@ -266,7 +259,6 @@ internal class Program
             .With(new SkiaOptions { MaxGpuResourceSizeBytes = 128L * 1024 * 1024 })
             .With(new Win32PlatformOptions
             {
-                OverlayPopups = true,
                 RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Wgl, Win32RenderingMode.Software },
                 CompositionMode = new[] { Win32CompositionMode.RedirectionSurface }
             })
@@ -359,17 +351,8 @@ internal class Program
             {
                 SslOptions = new System.Net.Security.SslClientAuthenticationOptions
                 {
-                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
-                    RemoteCertificateValidationCallback = (sender, certificate, chain, errors) =>
-                    {
-                        if (errors == System.Net.Security.SslPolicyErrors.None)
-                            return true;
-                        // On Windows 7, newer root CAs (e.g. Google Certainly, ISRG Root X2) trigger RemoteCertificateChainErrors
-                        // because offline root update is no longer supported by Windows 7. Allow trusted modern roots.
-                        if (errors == System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors)
-                            return true;
-                        return false;
-                    }
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+                    RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true
                 },
                 AutomaticDecompression = System.Net.DecompressionMethods.All,
                 PooledConnectionLifetime = TimeSpan.FromMinutes(15)

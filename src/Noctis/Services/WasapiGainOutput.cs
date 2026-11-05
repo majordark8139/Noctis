@@ -229,12 +229,12 @@ internal sealed class WasapiGainOutput : IDisposable
 
         (_buffer, _gain) = CreateInputChain(SampleRate, Channels);
 
-        // Exclusive mode requires a device-native format. Prefer 24-bit, then
-        // 16-bit, then float32; first Init that the driver accepts wins. The
+        // Exclusive mode requires a device-native format. Prefer 16-bit, then
+        // 24-bit, then float32; first Init that the driver accepts wins. The
         // gain stage stays in float upstream — at unity gain the S16 input maps
         // bit-exactly onto the 16/24-bit device formats.
         Exception? lastError = null;
-        foreach (var bits in new[] { 24, 16, 32 })
+        foreach (var bits in new[] { 16, 24, 32 })
         {
             // Post-gain beat tap for the flowing-artwork lyrics background (see BeatMeter).
             // Bit-perfect: mono/balance are bypassed here (allowChannelMix: false); only the
