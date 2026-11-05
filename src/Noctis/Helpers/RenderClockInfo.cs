@@ -30,7 +30,8 @@ internal static class RenderClockInfo
                 && !m.IsGenericMethod
                 && m.GetParameters() is { Length: 1 } ps
                 && ps[0].ParameterType == typeof(Type));
-            var loop = getService?.Invoke(locator, new object[] { typeof(IRenderLoop) });
+            var loopType = typeof(AvaloniaLocator).Assembly.GetType("Avalonia.Rendering.IRenderLoop");
+            var loop = loopType != null ? getService?.Invoke(locator, new object[] { loopType }) : null;
             var timer = loop?.GetType().GetProperty("Timer", Any)?.GetValue(loop);
             if (timer == null) return "unknown (no render loop timer)";
 

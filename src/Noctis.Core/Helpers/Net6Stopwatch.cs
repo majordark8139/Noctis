@@ -4,6 +4,13 @@ namespace Noctis.Helpers;
 
 public class Stopwatch : System.Diagnostics.Stopwatch
 {
+    public static new Stopwatch StartNew()
+    {
+        var sw = new Stopwatch();
+        sw.Start();
+        return sw;
+    }
+
     public static TimeSpan GetElapsedTime(long startingTimestamp) =>
         TimeSpan.FromSeconds((double)(GetTimestamp() - startingTimestamp) / Frequency);
 

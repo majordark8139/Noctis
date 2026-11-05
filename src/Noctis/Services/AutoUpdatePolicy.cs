@@ -286,7 +286,7 @@ internal static class AutoUpdatePolicy
     /// letters, digits, '.', '-' and '+'.</summary>
     public static bool IsSafeTag(string? tag) =>
         !string.IsNullOrEmpty(tag)
-        && tag.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '+')
+        && tag.All(c => ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) || c is '.' or '-' or '+')
         && UpdateService.ParseTag(tag) is not null;
 
     private static string TrimSeparators(string path) =>

@@ -56,8 +56,8 @@ public static class Win10DarkTitleBar
             if (window.IsVisible)
             {
                 var active = window.IsActive;
-                SendMessage(hwnd, WM_NCACTIVATE, active ? IntPtr.Zero : 1, IntPtr.Zero);
-                SendMessage(hwnd, WM_NCACTIVATE, active ? 1 : IntPtr.Zero, IntPtr.Zero);
+                SendMessage(hwnd, WM_NCACTIVATE, active ? IntPtr.Zero : (IntPtr)1, IntPtr.Zero);
+                SendMessage(hwnd, WM_NCACTIVATE, active ? (IntPtr)1 : IntPtr.Zero, IntPtr.Zero);
             }
         }
         catch (Exception ex)

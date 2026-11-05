@@ -465,9 +465,9 @@ public sealed class YtDlpTool
         using var reg = ct.Register(() => { try { if (!p.HasExited) p.Kill(true); } catch { } });
 
         var stdout = new StringBuilder();
-        var stderrTask = p.StandardError.ReadToEndAsync(ct);
+        var stderrTask = p.StandardError.ReadToEndAsync();
         string? line;
-        while ((line = await p.StandardOutput.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
+        while ((line = await p.StandardOutput.ReadLineAsync().ConfigureAwait(false)) is not null)
         {
             stdout.Append(line).Append('\n');
             onStdoutLine?.Invoke(line);

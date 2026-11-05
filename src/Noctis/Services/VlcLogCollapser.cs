@@ -78,14 +78,14 @@ internal sealed class VlcLogCollapser
         StringBuilder? sb = null;
         for (var i = 0; i < line.Length; i++)
         {
-            if (!char.IsAsciiDigit(line[i]))
+            if (line[i] < '0' || line[i] > '9')
             {
                 sb?.Append(line[i]);
                 continue;
             }
             sb ??= new StringBuilder(line.Length).Append(line, 0, i);
             sb.Append('#');
-            while (i + 1 < line.Length && char.IsAsciiDigit(line[i + 1])) i++;
+            while (i + 1 < line.Length && line[i + 1] >= '0' && line[i + 1] <= '9') i++;
         }
         return sb?.ToString() ?? line;
     }

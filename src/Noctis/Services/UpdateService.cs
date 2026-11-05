@@ -1043,7 +1043,7 @@ public sealed class UpdateService
         var path = uri.AbsolutePath;
         if (!path.StartsWith(RepoAssetPathPrefix, StringComparison.OrdinalIgnoreCase)) return false;
         var id = path[RepoAssetPathPrefix.Length..];
-        return id.Length > 0 && id.All(char.IsAsciiDigit);
+        return id.Length > 0 && id.All(c => c >= '0' && c <= '9');
     }
 
     /// <summary>

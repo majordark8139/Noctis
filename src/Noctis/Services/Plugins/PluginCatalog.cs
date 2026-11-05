@@ -156,7 +156,7 @@ public sealed class PluginCatalog
         if (download is null) { why = "missing or not allowed \"download\"."; return null; }
 
         var sha = Text(e, "sha256")?.ToLowerInvariant();
-        if (sha is null || sha.Length != 64 || !sha.All(char.IsAsciiHexDigit)) { why = "missing or bad \"sha256\"."; return null; }
+        if (sha is null || sha.Length != 64 || !sha.All(c => (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'))) { why = "missing or bad \"sha256\"."; return null; }
         if (!e.TryGetProperty("size", out var sz) || sz.ValueKind != JsonValueKind.Number || !sz.TryGetInt64(out var size)
             || size <= 0 || size > PluginInstaller.MaxTotalBytes)
         { why = "missing or bad \"size\"."; return null; }

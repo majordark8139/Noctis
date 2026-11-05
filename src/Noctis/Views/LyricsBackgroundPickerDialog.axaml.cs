@@ -65,7 +65,7 @@ public partial class LyricsBackgroundPickerDialog : Window
         if (!_vm.ShowYouTube)
         {
             if (FocusManager?.GetFocusedElement() is Visual focused && YouTubePanel.IsVisualAncestorOf(focused))
-                FocusManager.Focus(null); // Avalonia 12: Focus(null) clears
+                FocusManager.ClearFocus();
             return;
         }
         if (_vm.IsDownloading) return;

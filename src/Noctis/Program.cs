@@ -252,7 +252,7 @@ internal class Program
             .With(new SkiaOptions { MaxGpuResourceSizeBytes = 128L * 1024 * 1024 })
             .With(new Win32PlatformOptions
             {
-                RenderingMode = new[] { Win32RenderingMode.DirectX11, Win32RenderingMode.AngleEgl },
+                RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Software },
                 CompositionMode = new[] { Win32CompositionMode.LowLatencyDxgiSwapChain, Win32CompositionMode.RedirectionSurface }
             })
             .LogToTrace();

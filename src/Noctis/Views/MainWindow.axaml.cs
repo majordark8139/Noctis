@@ -668,7 +668,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
                 // never tracked later switches. The VM no-ops unless System is the
                 // active theme; Post guards against a non-UI-thread raise (SetTheme
                 // touches Application.Resources, which is UI-thread-only).
-                if (this.GetPlatformSettings() is { } platformSettings)
+                if (PlatformSettings is { } platformSettings)
                 {
                     _platformColorsChangedHandler = (_, _) =>
                         Dispatcher.UIThread.Post(() => vm.Settings.NotifySystemColorsChanged());
@@ -1041,7 +1041,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // an open-documents event instead (see FileActivation) — at a cold launch too,
         // once the run loop starts, which is before InitializeAsync has restored the queue.
         _detachFileActivation = Helpers.FileActivation.Subscribe(
-            Application.Current?.TryGetFeature<IActivatableLifetime>(),
+            (IActivatableLifetime?)Application.Current?.TryGetFeature(typeof(IActivatableLifetime)),
             files => Dispatcher.UIThread.Post(() =>
             {
                 ShowFromTray();
@@ -1054,7 +1054,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // had no way back but the status item. With the mini player up there is a visible
         // window, and AppKit's convention then is to just activate — leave it.
         _detachReopenActivation = Helpers.FileActivation.SubscribeReopen(
-            Application.Current?.TryGetFeature<IActivatableLifetime>(),
+            (IActivatableLifetime?)Application.Current?.TryGetFeature(typeof(IActivatableLifetime)),
             () => Dispatcher.UIThread.Post(() =>
             {
                 if (_miniPlayer == null)
@@ -1513,7 +1513,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
             _trayIcon = null;
         }
 
-        if (_platformColorsChangedHandler != null && this.GetPlatformSettings() is { } platformSettings)
+        if (_platformColorsChangedHandler != null && PlatformSettings is { } platformSettings)
             platformSettings.ColorValuesChanged -= _platformColorsChangedHandler;
 
         // Unsubscribe from all event handlers to prevent memory leak

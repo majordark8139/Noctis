@@ -2204,7 +2204,7 @@ public partial class PlayerViewModel : ViewModelBase
     /// </summary>
     public int MoveBlockInQueue(IReadOnlyCollection<int> indices, int insertIndex)
     {
-        var rows = indices.Where(i => i >= 0 && i < UpNext.Count).Distinct().Order().ToList();
+        var rows = indices.Where(i => i >= 0 && i < UpNext.Count).Distinct().OrderBy(x => x).ToList();
         if (rows.Count == 0) return -1;
         insertIndex = Math.Clamp(insertIndex, 0, UpNext.Count);
 

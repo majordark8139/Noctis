@@ -35,7 +35,7 @@ public static partial class TidalPlaylistLink
         var isAlbum = m.Groups[1].Value.Equals("album", StringComparison.OrdinalIgnoreCase);
         var idText = m.Groups[2].Value;
         // Playlists are UUIDs, albums numeric — a mismatch is not a link we know.
-        if (isAlbum != idText.All(char.IsAsciiDigit)) return false;
+        if (isAlbum != idText.All(c => c >= '0' && c <= '9')) return false;
         kind = isAlbum ? TidalLinkKind.Album : TidalLinkKind.Playlist;
         id = idText.ToLowerInvariant();
         return true;

@@ -433,7 +433,7 @@ public sealed partial class WebRemoteServer : IDisposable
                 return ("200 OK", "application/json", "{}");
 
             case ("POST", "/api/seek") when query.TryGetValue("fraction", out var f)
-                                            && double.TryParse(f, System.Globalization.CultureInfo.InvariantCulture, out var fraction):
+                                            && double.TryParse(f, System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowThousands, System.Globalization.CultureInfo.InvariantCulture, out var fraction):
                 await OnUiThread(() => { _player.SeekToPositionCommand.Execute(Math.Clamp(fraction, 0, 1)); return ""; });
                 return ("200 OK", "application/json", "{}");
 
