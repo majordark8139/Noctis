@@ -377,11 +377,11 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         ActualThemeVariantChanged += (_, _) => Win10DarkTitleBar.Apply(this);
 
         // Native Windows 7 Aero Glass Bridge: extend glass into client area on NT 6.1
-        Opened += (_, _) => Win7AeroGlassBridge.Apply(this);
+        Opened += (_, _) => Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
         if (Win7AeroGlassBridge.IsWindows7OrLower)
         {
-            Win7AeroGlassBridge.Apply(this);
-            ActualThemeVariantChanged += (_, _) => Win7AeroGlassBridge.Apply(this);
+            Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
+            ActualThemeVariantChanged += (_, _) => Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
         }
 
         // Initialize the application once the window is fully loaded.
@@ -469,12 +469,12 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
             AppGlass.Clear();
             QueueDrawerGlass.Apply(_queuePopupPanel, _queueGlass, glassActive: false);
             if (Win7AeroGlassBridge.IsWindows7OrLower)
-                Win7AeroGlassBridge.Apply(this);
+                Win7AeroGlassBridge.Apply(this, false);
             return;
         }
 
         if (Win7AeroGlassBridge.IsWindows7OrLower)
-            Win7AeroGlassBridge.Apply(this);
+            Win7AeroGlassBridge.Apply(this, true);
 
         // Resolve the active theme's surface colors from Application-level resources
         // (the window-scoped glass overlay never shadows those), so every theme —
@@ -507,12 +507,13 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // AppSidebarBackground stays the theme's own brush: every right-click menu,
         // flyout and tooltip paints with it, and at 55% they were see-through with no
         // blur behind them (GitHub #81). The sidebar pill frosts via AppGlass instead.
+        var surfaceOpacity = Win7AeroGlassBridge.IsWindows7OrLower ? 0.84 : 0.35;
         _liquidGlassOverlay = new ResourceDictionary
         {
-            ["AppMainBackground"] = new SolidColorBrush(main, 0.35),
+            ["AppMainBackground"] = new SolidColorBrush(main, surfaceOpacity),
             // The window root paints AppWindowBackgroundBrush (a gradient on some themes);
             // while glass is on it goes translucent with the content surface.
-            ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, 0.35),
+            ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, surfaceOpacity),
             // Accent action buttons deliberately keep their solid accent fill: frosting
             // them (2026-08-06) read as washed-out, muddy buttons and was reverted 09-07.
         };

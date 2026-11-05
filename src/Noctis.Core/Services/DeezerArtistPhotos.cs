@@ -275,24 +275,33 @@ public sealed class DeezerArtistPhotos
 
     private async Task<ImageDownload> DownloadImageOnceAsync(string imageUrl, CancellationToken token)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
-        using var response = await _http
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
-        if (!response.IsSuccessStatusCode ||
-            response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) != true)
-            return new(null, false);
-        // A followed redirect leaves the final URL on the request.
-        if (IsPlaceholderUrl((response.RequestMessage ?? request).RequestUri?.AbsoluteUri ?? ""))
-            return new(null, true);
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
+            request.Headers.Accept.ParseAdd("image/*, */*");
+            using var response = await _http
+                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode ||
+                response.Content.Headers.ContentType?.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) != true)
+                return new(null, false);
+            // A followed redirect leaves the final URL on the request.
+            if (IsPlaceholderUrl((response.RequestMessage ?? request).RequestUri?.AbsoluteUri ?? ""))
+                return new(null, true);
 
-        var imageData = await HttpSafety
-            .ReadBytesBoundedAsync(response.Content, HttpSafety.MaxImageBytes, token).ConfigureAwait(false);
-        // Magic-byte check: an error/HTML page must never be cached as artwork.
-        if (imageData.Length == 0 || !HttpSafety.LooksLikeImage(imageData))
+            var imageData = await HttpSafety
+                .ReadBytesBoundedAsync(response.Content, HttpSafety.MaxImageBytes, token).ConfigureAwait(false);
+            // Magic-byte check: an error/HTML page must never be cached as artwork.
+            if (imageData.Length == 0 || !HttpSafety.LooksLikeImage(imageData))
+                return new(null, false);
+            if (IsNoPhotoImage(imageData))
+                return new(null, true);
+            return new(imageData, false);
+        }
+        catch (Exception ex)
+        {
+            DebugLog.Write("ArtistImage", $"Download failed for {imageUrl}: {ex.Message}");
             return new(null, false);
-        if (IsNoPhotoImage(imageData))
-            return new(null, true);
-        return new(imageData, false);
+        }
     }
 
     /// <summary>Deezer serves the same photo at any square size up to 1800px; the search

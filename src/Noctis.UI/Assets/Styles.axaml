@@ -753,13 +753,23 @@
 
     <!-- Tooltip popup chrome (matches the pill-rounded card look used by menus) -->
     <Style Selector="ToolTip">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="14" />
         <!-- Match the active theme background like menus do. -->
         <Setter Property="Background" Value="{DynamicResource AppSidebarBackground}" />
         <Setter Property="Foreground" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+        <Setter Property="RenderOptions.TextRenderingMode" Value="Antialias" />
     </Style>
     <Style Selector="ToolTip /template/ ContentPresenter">
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="14" />
+    </Style>
+
+    <Style Selector="PopupRoot">
+        <Setter Property="TransparencyLevelHint" Value="Transparent" />
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
 

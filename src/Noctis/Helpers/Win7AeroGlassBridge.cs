@@ -8,9 +8,9 @@ namespace Noctis.Helpers;
 
 /// <summary>
 /// Native Windows 7 Aero Glass Bridge.
-/// Extends DWM Aero Glass into the client area via dwmapi.dll on Windows NT 6.1 (Environment.OSVersion.Version.Major &lt; 10),
-/// configuring window transparency and dark frosted tinted brushes (#25121212 to #35181818) so the native DWM frosted
-/// glass shines through without flat or opaque fallbacks, matching screenshot-4.png.
+/// Extends DWM Aero Glass into the client area via dwmapi.dll on Windows NT 6.1 (Environment.OSVersion.Version.Major &lt; 10).
+/// Composites a solid-tinted dark ground (84% opacity) so native DWM frosted glass shines through while keeping text
+/// and cards crisp and preventing desktop windows/Explorer from bleeding through.
 /// </summary>
 public static class Win7AeroGlassBridge
 {
@@ -37,9 +37,9 @@ public static class Win7AeroGlassBridge
 
     /// <summary>
     /// Applies the native DWM Aero Glass extension into the client area and configures
-    /// window transparency and dark frosted glass tinted brushes.
+    /// window transparency and dark frosted glass tinted brushes based on Liquid Glass state.
     /// </summary>
-    public static void Apply(Window window)
+    public static void Apply(Window window, bool glassEnabled = true)
     {
         if (!IsWindows7OrLower) return;
 
@@ -57,21 +57,36 @@ public static class Win7AeroGlassBridge
             };
             DwmExtendFrameIntoClientArea(hwnd, ref margins);
 
-            // Enable transparency levels
-            window.TransparencyLevelHint = new[]
-            {
-                WindowTransparencyLevel.Transparent,
-                WindowTransparencyLevel.Blur,
-                WindowTransparencyLevel.AcrylicBlur,
-                WindowTransparencyLevel.None
-            };
-            window.Background = Brushes.Transparent;
+            var baseColor = Color.Parse("#1A1A1A");
+            if (window.TryFindResource("AppMainBackgroundColor", out var resColor) && resColor is Color c)
+                baseColor = c;
 
-            // Apply dark tinted brushes (#25121212 to #35181818) so native DWM frosted glass shines through
-            var darkTint = Color.Parse("#28141414");
-            var darkBrush = new SolidColorBrush(darkTint);
-            window.Resources["AppWindowBackgroundBrush"] = darkBrush;
-            window.Resources["AppMainBackground"] = darkBrush;
+            if (glassEnabled)
+            {
+                // Enable transparency levels
+                window.TransparencyLevelHint = new[]
+                {
+                    WindowTransparencyLevel.Transparent,
+                    WindowTransparencyLevel.Blur,
+                    WindowTransparencyLevel.None
+                };
+                window.Background = Brushes.Transparent;
+
+                // Apply solid-tinted dark ground (84% opacity) so the DWM blur shines through
+                // without showing desktop Explorer text or wallpapers behind the content.
+                var darkTint = Color.FromArgb(0xD6, baseColor.R, baseColor.G, baseColor.B);
+                var darkBrush = new SolidColorBrush(darkTint);
+                window.Resources["AppWindowBackgroundBrush"] = darkBrush;
+                window.Resources["AppMainBackground"] = darkBrush;
+            }
+            else
+            {
+                window.ClearValue(Window.TransparencyLevelHintProperty);
+                var opaqueBrush = new SolidColorBrush(baseColor);
+                window.Background = opaqueBrush;
+                window.Resources["AppWindowBackgroundBrush"] = opaqueBrush;
+                window.Resources["AppMainBackground"] = opaqueBrush;
+            }
         }
         catch (Exception ex)
         {

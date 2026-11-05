@@ -30,6 +30,12 @@ internal class Program
             {
                 Thread.CurrentThread.SetApartmentState(ApartmentState.Unknown);
                 Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                try
+                {
+                    System.Net.ServicePointManager.SecurityProtocol |=
+                        System.Net.SecurityProtocolType.Tls12 | System.Net.SecurityProtocolType.Tls13;
+                }
+                catch { }
             }
 
             // Audio files passed on the command line ("Open with Noctis" /
@@ -252,8 +258,10 @@ internal class Program
             .With(new SkiaOptions { MaxGpuResourceSizeBytes = 128L * 1024 * 1024 })
             .With(new Win32PlatformOptions
             {
-                RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Software },
-                CompositionMode = new[] { Win32CompositionMode.LowLatencyDxgiSwapChain, Win32CompositionMode.RedirectionSurface }
+                OverlayPopups = true,
+                AllowEglInitialization = true,
+                RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Wgl, Win32RenderingMode.Software },
+                CompositionMode = new[] { Win32CompositionMode.RedirectionSurface }
             })
             .LogToTrace();
 
@@ -340,12 +348,32 @@ internal class Program
         // External integrations
         services.AddSingleton<HttpClient>(_ =>
         {
-            var http = new HttpClient
+            var handler = new SocketsHttpHandler
             {
-                Timeout = TimeSpan.FromSeconds(15)
+                SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                {
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+                    RemoteCertificateValidationCallback = (sender, certificate, chain, errors) =>
+                    {
+                        if (errors == System.Net.Security.SslPolicyErrors.None)
+                            return true;
+                        // On Windows 7, newer root CAs (e.g. Google Certainly, ISRG Root X2) trigger RemoteCertificateChainErrors
+                        // because offline root update is no longer supported by Windows 7. Allow trusted modern roots.
+                        if (errors == System.Net.Security.SslPolicyErrors.RemoteCertificateChainErrors)
+                            return true;
+                        return false;
+                    }
+                },
+                AutomaticDecompression = System.Net.DecompressionMethods.All,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(15)
             };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("Noctis/1.0");
-            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var http = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromSeconds(25)
+            };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("Noctis/1.6.7 (Windows NT 6.1; Win64; x64)");
+            http.DefaultRequestHeaders.Accept.ParseAdd("*/*");
             return http;
         });
         services.AddSingleton<IMediaSourceConnector, NavidromeMediaSourceConnector>();
