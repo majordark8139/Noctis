@@ -184,8 +184,7 @@ public sealed class MetadataSearchService : IMetadataSearchService
     {
         HttpStatusCode.TooManyRequests or HttpStatusCode.ServiceUnavailable => "Busy — try again shortly",
         { } code => $"HTTP {(int)code}",
-        null when ex.InnerException is SocketException || ex.HttpRequestError is HttpRequestError.NameResolutionError
-                  or HttpRequestError.ConnectionError => "Offline or unreachable",
+        null when ex.InnerException is SocketException => "Offline or unreachable",
         _ => ex.Message,
     };
 

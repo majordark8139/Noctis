@@ -39,7 +39,7 @@ public static class PcmDecoder16k
         using var p = Process.Start(psi) ?? throw new InvalidOperationException("ffmpeg could not be started");
         using var reg = ct.Register(() => { try { if (!p.HasExited) p.Kill(true); } catch { } });
 
-        var stderrTask = p.StandardError.ReadToEndAsync(ct);
+        var stderrTask = p.StandardError.ReadToEndAsync();
         var expected = duration is { } d && d > TimeSpan.Zero ? (long)(Math.Min(d.TotalSeconds, MaxSeconds) * SampleRate) * 4 : 0;
         await using var pcm = new MemoryStream(expected is > 0 and < int.MaxValue - (1 << 20) ? (int)expected + (1 << 16) : 0);
         await CopyWithProgressAsync(p.StandardOutput.BaseStream, pcm, expected, progress, ct).ConfigureAwait(false);

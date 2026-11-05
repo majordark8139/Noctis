@@ -62,8 +62,8 @@ public sealed class ServerFlacTranscoder
             using var process = Process.Start(psi);
             if (process is null) return false;
             // Drained so a chatty ffmpeg cannot block on a full pipe. Not logged: its lines name the file.
-            var stderr = process.StandardError.ReadToEndAsync(CancellationToken.None);
-            var stdout = process.StandardOutput.ReadToEndAsync(CancellationToken.None);
+            var stderr = process.StandardError.ReadToEndAsync();
+            var stdout = process.StandardOutput.ReadToEndAsync();
             try
             {
                 await process.WaitForExitAsync(limit.Token).ConfigureAwait(false);
