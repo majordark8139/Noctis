@@ -31,6 +31,6 @@
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="*" PrivateAssets="all" />
     <!-- Visual plugins return Avalonia controls; keep the version in step with the app. -->
-    <PackageReference Include="Avalonia" Version="12.1.3" GeneratePathProperty="true" />
+    <PackageReference Include="Avalonia" Version="11.3.18" />
   </ItemGroup>
 </Project>

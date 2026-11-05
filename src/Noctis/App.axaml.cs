@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -96,7 +96,7 @@ public partial class App : Application
                     && source != focused
                     && !Avalonia.VisualTree.VisualExtensions.IsVisualAncestorOf(focused, source))
                 {
-                    top.FocusManager.Focus(null); // 12: Focus(null) clears (ClearFocus removed)
+                    top.FocusManager?.ClearFocus();
                 }
             },
             Avalonia.Interactivity.RoutingStrategies.Tunnel);
