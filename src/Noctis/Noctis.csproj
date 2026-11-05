@@ -97,7 +97,7 @@
     <PackageReference Include="PolySharp" Version="*" PrivateAssets="all" />
     <PackageReference Include="Avalonia" Version="11.3.18" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.18" />
-    <PackageReference Include="Avalonia.Angle.Windows.Natives" Version="11.3.18" />
+    <PackageReference Include="Avalonia.Angle.Windows.Natives" Version="2.2.0.20230930" />
     <PackageReference Include="Avalonia.Labs.Lottie" Version="11.3.1" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.18" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.18" />
