@@ -9004,8 +9004,8 @@ public partial class SettingsViewModel : ViewModelBase
     private void OpenLatestRelease()
     {
         var url = string.IsNullOrEmpty(LatestVersionTag)
-            ? "https://github.com/heartached/Noctis/releases/latest"
-            : $"https://github.com/heartached/Noctis/releases/tag/{LatestVersionTag}";
+            ? "https://github.com/majordark8139/Noctis/releases/latest"
+            : $"https://github.com/majordark8139/Noctis/releases/tag/{LatestVersionTag}";
         Helpers.PlatformHelper.OpenUrl(url);
     }
 

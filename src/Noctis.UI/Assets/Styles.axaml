@@ -751,13 +751,13 @@
         <Setter Property="(helpers:MenuOpenAnimation.Enable)" Value="True" />
     </Style>
 
-    <Style Selector=":is(Control)">
-        <Setter Property="ToolTip.ShouldUseOverlayLayer" Value="True" />
+    <!-- Default popups to render in overlay layer (avoids Windows 7 Win32 square corners around rounded cards and tooltips) -->
+    <Style Selector="Popup">
+        <Setter Property="ShouldUseOverlayLayer" Value="True" />
     </Style>
 
     <!-- Tooltip popup chrome (matches the pill-rounded card look used by menus) -->
     <Style Selector="ToolTip">
-        <Setter Property="ToolTip.ShouldUseOverlayLayer" Value="True" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="CornerRadius" Value="14" />
