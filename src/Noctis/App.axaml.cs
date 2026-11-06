@@ -37,6 +37,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+        // Force tooltips to render on the window overlay layer to avoid native Win32 window popup artifacts (white square corners on Windows 7).
+        ToolTip.ShouldUseOverlayLayerProperty.OverrideDefaultValue<Control>(true);
         // Interface Size (GitHub #145): every window gets its scale host from here on.
         Noctis.Helpers.UiScale.Install();
 

@@ -16,9 +16,9 @@ namespace Noctis.Services;
 /// </summary>
 public sealed class DeezerArtistPhotos
 {
-    public const string SearchUrl = "https://api.deezer.com/search/artist";
+    public const string SearchUrl = "http://api.deezer.com/search/artist";
     public const int SearchLimit = 10;
-    public const string ArtistUrl = "https://api.deezer.com/artist";
+    public const string ArtistUrl = "http://api.deezer.com/artist";
 
     /// <summary>How many same-name accounts (fan-ordered) get their top tracks checked.</summary>
     public const int VerifyCandidateLimit = 3;
@@ -185,6 +185,11 @@ public sealed class DeezerArtistPhotos
             if (item.TryGetProperty(size, out var p) && p.ValueKind == JsonValueKind.String
                 && p.GetString() is { Length: > 0 } url && !IsPlaceholderUrl(url))
             {
+                if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                    (url.Contains("dzcdn.net", StringComparison.OrdinalIgnoreCase) || url.Contains("deezer.com", StringComparison.OrdinalIgnoreCase)))
+                {
+                    url = "http://" + url.Substring(8);
+                }
                 thumb = url;
                 break;
             }
@@ -277,6 +282,11 @@ public sealed class DeezerArtistPhotos
     {
         try
         {
+            if (imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                (imageUrl.Contains("dzcdn.net", StringComparison.OrdinalIgnoreCase) || imageUrl.Contains("deezer.com", StringComparison.OrdinalIgnoreCase)))
+            {
+                imageUrl = "http://" + imageUrl.Substring(8);
+            }
             using var request = new HttpRequestMessage(HttpMethod.Get, imageUrl);
             request.Headers.Accept.ParseAdd("image/*, */*");
             using var response = await _http
@@ -309,15 +319,29 @@ public sealed class DeezerArtistPhotos
     /// across the whole window, so ask for 1800 (measured 09-13: 296 KB vs 88 KB, same
     /// hash). Non-Deezer or unfamiliar URLs pass through untouched.</summary>
     public static string UpgradeSize(string imageUrl)
-        => imageUrl.Contains("dzcdn.net/images/artist/", StringComparison.OrdinalIgnoreCase)
+    {
+        if (imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+            (imageUrl.Contains("dzcdn.net", StringComparison.OrdinalIgnoreCase) || imageUrl.Contains("deezer.com", StringComparison.OrdinalIgnoreCase)))
+        {
+            imageUrl = "http://" + imageUrl.Substring(8);
+        }
+        return imageUrl.Contains("dzcdn.net/images/artist/", StringComparison.OrdinalIgnoreCase)
             ? imageUrl.Replace("/1000x1000-", "/1800x1800-", StringComparison.Ordinal)
             : imageUrl;
+    }
 
     /// <summary>A Deezer photo URL at the 1000px original instead of the 1800px
     /// <see cref="UpgradeSize"/> asks for: the phone never draws a portrait wider than its
     /// screen, and the small file is a third of the data.</summary>
     public static string OriginalSize(string imageUrl)
-        => imageUrl.Replace("/1800x1800-", "/1000x1000-", StringComparison.Ordinal);
+    {
+        if (imageUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+            (imageUrl.Contains("dzcdn.net", StringComparison.OrdinalIgnoreCase) || imageUrl.Contains("deezer.com", StringComparison.OrdinalIgnoreCase)))
+        {
+            imageUrl = "http://" + imageUrl.Substring(8);
+        }
+        return imageUrl.Replace("/1800x1800-", "/1000x1000-", StringComparison.Ordinal);
+    }
 
     /// <summary>Title comparison key: diacritics folded, case and punctuation dropped, any
     /// "(feat. …)" / "[…]" / " - …" suffix removed so a tagged "Me Acostumbré (feat. Bad

@@ -41,11 +41,11 @@ public static partial class DeezerPlaylistLink
 
     /// <summary>The <c>/playlist/{id}</c> or <c>/album/{id}</c> record: title and cover only.</summary>
     public static string BuildInfoUrl(DeezerLinkKind kind, long id)
-        => $"https://api.deezer.com/{Segment(kind)}/{id}";
+        => $"http://api.deezer.com/{Segment(kind)}/{id}";
 
     /// <summary>One page of tracks: <c>/playlist/{id}/tracks?limit=100&amp;index=N</c>.</summary>
     public static string BuildTracksUrl(DeezerLinkKind kind, long id, int index = 0)
-        => $"https://api.deezer.com/{Segment(kind)}/{id}/tracks?limit={PageSize}&index={index}";
+        => $"http://api.deezer.com/{Segment(kind)}/{id}/tracks?limit={PageSize}&index={index}";
 
     private static string Segment(DeezerLinkKind kind) => kind == DeezerLinkKind.Album ? "album" : "playlist";
 
@@ -94,7 +94,7 @@ public static partial class DeezerPlaylistLink
 
             var next = root.TryGetProperty("next", out var n) && n.ValueKind == JsonValueKind.String ? n.GetString() : null;
             // Only follow Deezer's own API — a hostile "next" must not turn this into an open fetch.
-            if (next is not null && !next.StartsWith("https://api.deezer.com/", StringComparison.OrdinalIgnoreCase))
+            if (next is not null && !next.StartsWith("http://api.deezer.com/", StringComparison.OrdinalIgnoreCase) && !next.StartsWith("https://api.deezer.com/", StringComparison.OrdinalIgnoreCase))
                 next = null;
             return (entries, next);
         }

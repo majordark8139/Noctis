@@ -2673,6 +2673,7 @@
                    Placement="BottomEdgeAlignedRight"
                    VerticalOffset="6"
                    IsLightDismissEnabled="False"
+                   ShouldUseOverlayLayer="False"
                    WindowManagerAddShadowHint="False">
                 <!-- Chrome follows the app's menus (Styles.axaml "Menus", the v2 card): the active
                      theme's sidebar background, radius 18, hairline MenuV2BorderBrush, padding 6,

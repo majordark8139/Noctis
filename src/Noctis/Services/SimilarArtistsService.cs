@@ -18,8 +18,8 @@ namespace Noctis.Services;
 /// </summary>
 public sealed class SimilarArtistsService
 {
-    private const string DeezerSearchUrl = "https://api.deezer.com/search/artist";
-    private const string DeezerArtistUrl = "https://api.deezer.com/artist/";
+    private const string DeezerSearchUrl = "http://api.deezer.com/search/artist";
+    private const string DeezerArtistUrl = "http://api.deezer.com/artist/";
     private const int MaxRelated = 12;
     private const long MaxImageBytes = 2 * 1024 * 1024;
     private static readonly TimeSpan HitTtl = TimeSpan.FromDays(30);

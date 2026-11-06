@@ -358,7 +358,7 @@ internal class Program
                 PooledConnectionLifetime = TimeSpan.FromMinutes(15)
             };
 
-            var http = new HttpClient(handler)
+            var http = new HttpClient(new DeezerHttpRedirectHandler(handler))
             {
                 Timeout = TimeSpan.FromSeconds(25)
             };
@@ -591,5 +591,31 @@ internal class Program
 
         // Also surface it in the in-app session log (Settings → About → Developer Mode).
         try { Services.DebugLog.Write(source, ex); } catch { }
+    }
+}
+
+/// <summary>
+/// Deezer's HTTPS endpoint enforces AES-GCM cipher suites, which Windows 7's Schannel does not support.
+/// Since Deezer's API and CDN are fully functional over standard HTTP, rewrite HTTPS requests to HTTP.
+/// </summary>
+internal sealed class DeezerHttpRedirectHandler : DelegatingHandler
+{
+    public DeezerHttpRedirectHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (request.RequestUri != null &&
+            request.RequestUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+            (request.RequestUri.Host.EndsWith("deezer.com", StringComparison.OrdinalIgnoreCase) ||
+             request.RequestUri.Host.EndsWith("dzcdn.net", StringComparison.OrdinalIgnoreCase)))
+        {
+            var builder = new UriBuilder(request.RequestUri)
+            {
+                Scheme = "http",
+                Port = -1
+            };
+            request.RequestUri = builder.Uri;
+        }
+        return base.SendAsync(request, cancellationToken);
     }
 }
