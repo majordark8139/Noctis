@@ -2239,7 +2239,7 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
                     var sink = WasapiGainOutput.TryCreateExclusive(rate, channels, target, out var reason);
                     if (sink != null)
                     {
-                        notice = $"Exclusive output active: {sink.SampleRate / 1000.0:0.#} kHz / {(sink.BitsPerSample == 32 ? "32-bit float" : $"{sink.BitsPerSample}-bit")}";
+                        notice = $"Exclusive output active: {sink.SampleRate / 1000.0:0.#} kHz (Bit-perfect direct transport, {(sink.BitsPerSample == 32 ? "32-bit float" : $"{sink.BitsPerSample}-bit")} stream)";
                     }
                     else
                     {
