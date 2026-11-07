@@ -1,5 +1,5 @@
 using Noctis.ViewModels;
-#if WINDOWS
+#if WINDOWS10_0_17763_0_OR_GREATER
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Avalonia.Threading;
@@ -15,11 +15,11 @@ namespace Noctis.Services;
 /// track in the Windows media overlay / quick-settings flyout and accepts
 /// play/pause/next/previous from it (hardware media keys included), so playback
 /// stays controllable while the window sits in the tray. Compiles to a no-op on
-/// non-Windows builds (plain net8.0 TFM has no WinRT projections).
+/// non-Windows builds and Windows 7 (which uses TaskbarIntegrationService instead).
 /// </summary>
 public sealed class SmtcService : IDisposable
 {
-#if WINDOWS
+#if WINDOWS10_0_17763_0_OR_GREATER
     /// <summary>
     /// COM interop factory for HWND-scoped SMTC. Desktop (non-UWP) processes must
     /// use this — GetForCurrentView is UWP-only, and a dummy MediaPlayer's SMTC

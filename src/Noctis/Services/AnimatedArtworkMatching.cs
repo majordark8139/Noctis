@@ -244,7 +244,7 @@ internal sealed record AppleMusicLink(AppleMusicLinkKind Kind, string Storefront
             return false;
 
         var trimmed = input.Trim();
-        if (trimmed.All(char.IsAsciiDigit))
+        if (trimmed.All(c => c >= '0' && c <= '9'))
         {
             if (trimmed.Length < 6 || !long.TryParse(trimmed, out var bare))
                 return false;
@@ -295,7 +295,7 @@ internal sealed record AppleMusicLink(AppleMusicLinkKind Kind, string Storefront
             var segment = segments[i].StartsWith("id", StringComparison.OrdinalIgnoreCase)
                 ? segments[i][2..]
                 : segments[i];
-            if (segment.Length < 6 || !segment.All(char.IsAsciiDigit) || !long.TryParse(segment, out var id))
+            if (segment.Length < 6 || !segment.All(c => c >= '0' && c <= '9') || !long.TryParse(segment, out var id))
                 continue;
 
             var kind = kindWord == "song" ? AppleMusicLinkKind.Song

@@ -84,11 +84,13 @@ public sealed class AutoUpdateStore
         Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
         var tmp = FilePath + ".tmp";
         File.WriteAllText(tmp, JsonSerializer.Serialize(state, WriteOptions));
+#if !WINDOWS && NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             try { File.SetUnixFileMode(tmp, UnixFileMode.UserRead | UnixFileMode.UserWrite); }
             catch { /* best effort on filesystems without POSIX modes */ }
         }
+#endif
         File.Move(tmp, FilePath, overwrite: true);
     }
 
@@ -284,7 +286,7 @@ internal static class AutoUpdatePolicy
     /// letters, digits, '.', '-' and '+'.</summary>
     public static bool IsSafeTag(string? tag) =>
         !string.IsNullOrEmpty(tag)
-        && tag.All(c => char.IsAsciiLetterOrDigit(c) || c is '.' or '-' or '+')
+        && tag.All(c => ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) || c is '.' or '-' or '+')
         && UpdateService.ParseTag(tag) is not null;
 
     private static string TrimSeparators(string path) =>

@@ -766,7 +766,7 @@
                         <!-- The pill pop-ups' multi-line box: filled, no rim at rest, the accent ring while typing. -->
                         <TextBox x:Name="LyricsBox" Classes="pill-area" Text="{Binding Selected.DraftText}" AcceptsReturn="True" TextWrapping="Wrap"
                                  AutomationProperties.Name="{loc:T LyricsStudio.LyricsBox}"
-                                 PlaceholderText="{loc:T LyricsStudio.PasteWatermark}" FontSize="13"
+                                 Watermark="{loc:T LyricsStudio.PasteWatermark}" FontSize="13"
                                  ScrollViewer.VerticalScrollBarVisibility="Auto" IsEnabled="{Binding !IsRunning}" />
                     </DockPanel>
 

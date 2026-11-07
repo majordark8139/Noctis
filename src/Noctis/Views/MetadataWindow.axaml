@@ -9,7 +9,7 @@
         x:DataType="vm:MetadataViewModel"
         Title="{loc:T Metadata.Metadata}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">

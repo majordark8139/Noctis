@@ -16,7 +16,7 @@ namespace Noctis.Services.MetadataSearch;
 /// </summary>
 public sealed class DeezerProvider : IMetadataProvider
 {
-    private const string Api = "https://api.deezer.com";
+    private const string Api = "http://api.deezer.com";
     private const int EnrichTop = 2;
     private const int AlbumEnrichTop = 3;
 

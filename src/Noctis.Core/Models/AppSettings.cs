@@ -706,7 +706,7 @@ public class AppSettings : IJsonOnDeserializing
     public int UiScalePercent { get; set; } = 100;
 
     /// <summary>The Settings picker's choices for <see cref="UiScalePercent"/>.</summary>
-    public static IReadOnlyList<int> UiScaleChoices { get; } = new[] { 90, 100, 110, 125, 150, 175, 200 };
+    public static IReadOnlyList<int> UiScaleChoices { get; } = new[] { 50, 60, 70, 75, 80, 85, 90, 100, 110, 125, 150, 175, 200 };
 
     /// <summary>The nearest of <see cref="UiScaleChoices"/>: a hand-edited value snaps.</summary>
     public static int SnapUiScale(int percent) =>
@@ -795,6 +795,12 @@ public class AppSettings : IJsonOnDeserializing
     /// Off by default since the track-box layout: the stock bar mirrors the Apple-Music
     /// reference — transport, track box, lyrics / queue / volume.</summary>
     public bool PlaybackBarShowRepeat { get; set; }
+
+    /// <summary>Dedicated Stop button to halt playback and release Exclusive Mode.</summary>
+    public bool PlaybackBarShowStopButton { get; set; }
+
+    /// <summary>When true, Stop button is only shown when Exclusive Mode is active/enabled.</summary>
+    public bool PlaybackBarStopButtonExclusiveOnly { get; set; }
 
     public bool PlaybackBarShowFavorite { get; set; }
 

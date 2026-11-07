@@ -263,7 +263,7 @@ public sealed class SubsonicClient : IMediaServerClient
         {
             // Crypto-RNG salt: Guid.NewGuid is random in practice but not contractually
             // a CSPRNG, and the salt is the only thing between the md5 token and replay.
-            var salt = RandomNumberGenerator.GetHexString(12, lowercase: true);
+            var salt = Convert.ToHexString(RandomNumberGenerator.GetBytes(6)).ToLowerInvariant();
             var token = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(password + salt))).ToLowerInvariant();
             sb.Append("&t=").Append(token).Append("&s=").Append(salt);
         }

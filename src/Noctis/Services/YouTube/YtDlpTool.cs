@@ -151,11 +151,13 @@ public sealed class YtDlpTool
         }
         File.Move(temp, InstalledPath, overwrite: true);
         _versionCache = null;
+#if !WINDOWS && NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             try { File.SetUnixFileMode(InstalledPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute); }
             catch { }
         }
+#endif
         progress?.Report(1);
         Log("YtDlp.Installed", InstalledPath);
         return InstalledPath;
@@ -463,9 +465,9 @@ public sealed class YtDlpTool
         using var reg = ct.Register(() => { try { if (!p.HasExited) p.Kill(true); } catch { } });
 
         var stdout = new StringBuilder();
-        var stderrTask = p.StandardError.ReadToEndAsync(ct);
+        var stderrTask = p.StandardError.ReadToEndAsync();
         string? line;
-        while ((line = await p.StandardOutput.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
+        while ((line = await p.StandardOutput.ReadLineAsync().ConfigureAwait(false)) is not null)
         {
             stdout.Append(line).Append('\n');
             onStdoutLine?.Invoke(line);

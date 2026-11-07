@@ -23,11 +23,11 @@ public static partial class ExistingLyricsLoader
     private static readonly string[] LrcExtensions = { ".lrc", ".LRC", ".Lrc" };
     private static readonly string[] TtmlExtensions = { ".ttml", ".TTML", ".Ttml" };
 
-    [GeneratedRegex(@"^\[(\d{1,3}):(\d{2,3})(?:[.:](\d{1,3}))?\]")]
-    private static partial Regex LeadingTimestamp();
+    private static readonly Regex _leadingTimestamp = new(@"^\[(\d{1,3}):(\d{2,3})(?:[.:](\d{1,3}))?\]", RegexOptions.Compiled);
+    private static Regex LeadingTimestamp() => _leadingTimestamp;
 
-    [GeneratedRegex(@"^\[[A-Za-z][A-Za-z0-9_]*:[^\]]*\]$")]
-    private static partial Regex MetadataTag();
+    private static readonly Regex _metadataTag = new(@"^\[[A-Za-z][A-Za-z0-9_]*:[^\]]*\]$", RegexOptions.Compiled);
+    private static Regex MetadataTag() => _metadataTag;
 
     private static readonly TimeSpan DefaultWordSpan = TimeSpan.FromMilliseconds(420);
 

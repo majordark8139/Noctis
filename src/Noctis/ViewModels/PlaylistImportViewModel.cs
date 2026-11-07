@@ -9,6 +9,113 @@ using Noctis.Services;
 namespace Noctis.ViewModels;
 
 /// <summary>
+/// One entry of the preview list: a title, its artist under it, and whether the library has
+/// it (the row's Found / Missing chip). Discord (Cosmo, 11-02): a missing entry offers the
+/// library songs closest to it and a search, so a song under a slightly different name can
+/// still be added; any matched entry can be left out of the playlist.
+/// </summary>
+public sealed partial class ImportRow : ObservableObject
+{
+    public ImportRow(string title, string artist, bool isMatched)
+    {
+        Title = title;
+        Artist = artist;
+        _matchedByFile = isMatched;
+    }
+
+    /// <summary>Splits the service's "Artist – Title" label for the two-line row.</summary>
+    public static ImportRow From(string label, bool matched)
+    {
+        var at = label.IndexOf(" – ", StringComparison.Ordinal);
+        return at > 0
+            ? new ImportRow(label[(at + 3)..], label[..at], matched)
+            : new ImportRow(label, string.Empty, matched);
+    }
+
+    public string Title { get; }
+    public string Artist { get; }
+    public bool HasArtist => Artist.Length > 0;
+
+    /// <summary>Position in the imported list: the playlist keeps the file's order.</summary>
+    internal int Order { get; init; }
+    /// <summary>The library song the importer matched (null for label-only previews).</summary>
+    internal Guid? TrackId { get; init; }
+    private readonly bool _matchedByFile;
+
+    /// <summary>The library song picked in the review step.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsMatched), nameof(IsMissing), nameof(HasPick), nameof(PickLabel), nameof(ShowCandidates), nameof(CanToggleIncluded))]
+    private Track? _picked;
+
+    /// <summary>Left out of the playlist with the row's ✕ (matched rows only).</summary>
+    [ObservableProperty] private bool _isIncluded = true;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowCandidates))]
+    private bool _isSearchOpen;
+    [ObservableProperty] private string _searchText = string.Empty;
+    [ObservableProperty] private IReadOnlyList<Choice> _searchResults = Array.Empty<Choice>();
+
+    public bool IsMatched => Picked is not null || _matchedByFile;
+    public bool IsMissing => !IsMatched;
+    public bool HasPick => Picked is not null;
+    public bool CanToggleIncluded => IsMatched;
+    /// <summary>"→ Title · Artist" under a row matched in the review.</summary>
+    public string PickLabel => Picked is null ? string.Empty : Choice.LabelOf(Picked);
+
+    /// <summary>The library songs closest to a missing entry, best first.</summary>
+    public IReadOnlyList<Choice> Candidates { get; init; } = Array.Empty<Choice>();
+    public bool ShowCandidates => IsMissing && !IsSearchOpen && Candidates.Count > 0;
+
+    /// <summary>The track this row puts in the playlist, null when it adds none.</summary>
+    internal Guid? PlaylistTrackId => !IsIncluded ? null : Picked?.Id ?? (_matchedByFile ? TrackId : null);
+
+    /// <summary>Set by the dialog: searches the library for the row's search box.</summary>
+    internal Func<string, IReadOnlyList<Track>>? Search { get; init; }
+    internal Action? Changed { get; init; }
+
+    partial void OnPickedChanged(Track? value) => Changed?.Invoke();
+    partial void OnIsIncludedChanged(bool value) => Changed?.Invoke();
+
+    partial void OnSearchTextChanged(string value)
+        => SearchResults = Search is null || string.IsNullOrWhiteSpace(value)
+            ? Array.Empty<Choice>()
+            : Search(value).Select(t => new Choice(t)).ToList();
+
+    [RelayCommand]
+    private void Pick(Choice? choice)
+    {
+        if (choice is null) return;
+        IsSearchOpen = false;
+        IsIncluded = true;
+        Picked = choice.Track;
+    }
+
+    /// <summary>"Change": back to the candidates and the search.</summary>
+    [RelayCommand]
+    private void Unpick() => Picked = null;
+
+    [RelayCommand]
+    private void ToggleSearch()
+    {
+        IsSearchOpen = !IsSearchOpen;
+        if (IsSearchOpen && SearchText.Length == 0)
+            SearchText = HasArtist ? $"{Title} {Artist}" : Title;
+    }
+
+    [RelayCommand]
+    private void ToggleIncluded() => IsIncluded = !IsIncluded;
+}
+
+/// <summary>A library song offered for a row: a candidate or a search result.</summary>
+public sealed record Choice(Track Track)
+{
+    public string Label => LabelOf(Track);
+    internal static string LabelOf(Track t)
+        => string.IsNullOrWhiteSpace(t.Artist) ? t.Title : $"{t.Title} · {t.Artist}";
+}
+
+/// <summary>
 /// Drives the playlist-import dialog: read an Exportify CSV / TuneMyMusic JSON / m3u export or
 /// a pasted Deezer/TIDAL link, fuzzy-match its entries against the library, then create a playlist
 /// from the matches and show a report of the tracks that couldn't be found.
@@ -22,113 +129,6 @@ public partial class PlaylistImportViewModel : ViewModelBase
 
     private static string L(string key) => Localization.Loc.T(key);
     private static string L(string key, params object[] args) => Localization.Loc.T(key, args);
-
-    /// <summary>
-    /// One entry of the preview list: a title, its artist under it, and whether the library has
-    /// it (the row's Found / Missing chip). Discord (Cosmo, 11-02): a missing entry offers the
-    /// library songs closest to it and a search, so a song under a slightly different name can
-    /// still be added; any matched entry can be left out of the playlist.
-    /// </summary>
-    public sealed partial class ImportRow : ObservableObject
-    {
-        public ImportRow(string title, string artist, bool isMatched)
-        {
-            Title = title;
-            Artist = artist;
-            _matchedByFile = isMatched;
-        }
-
-        /// <summary>Splits the service's "Artist – Title" label for the two-line row.</summary>
-        public static ImportRow From(string label, bool matched)
-        {
-            var at = label.IndexOf(" – ", StringComparison.Ordinal);
-            return at > 0
-                ? new ImportRow(label[(at + 3)..], label[..at], matched)
-                : new ImportRow(label, string.Empty, matched);
-        }
-
-        public string Title { get; }
-        public string Artist { get; }
-        public bool HasArtist => Artist.Length > 0;
-
-        /// <summary>Position in the imported list: the playlist keeps the file's order.</summary>
-        internal int Order { get; init; }
-        /// <summary>The library song the importer matched (null for label-only previews).</summary>
-        internal Guid? TrackId { get; init; }
-        private readonly bool _matchedByFile;
-
-        /// <summary>The library song picked in the review step.</summary>
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsMatched), nameof(IsMissing), nameof(HasPick), nameof(PickLabel), nameof(ShowCandidates), nameof(CanToggleIncluded))]
-        private Track? _picked;
-
-        /// <summary>Left out of the playlist with the row's ✕ (matched rows only).</summary>
-        [ObservableProperty] private bool _isIncluded = true;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(ShowCandidates))]
-        private bool _isSearchOpen;
-        [ObservableProperty] private string _searchText = string.Empty;
-        [ObservableProperty] private IReadOnlyList<Choice> _searchResults = Array.Empty<Choice>();
-
-        public bool IsMatched => Picked is not null || _matchedByFile;
-        public bool IsMissing => !IsMatched;
-        public bool HasPick => Picked is not null;
-        public bool CanToggleIncluded => IsMatched;
-        /// <summary>"→ Title · Artist" under a row matched in the review.</summary>
-        public string PickLabel => Picked is null ? string.Empty : Choice.LabelOf(Picked);
-
-        /// <summary>The library songs closest to a missing entry, best first.</summary>
-        public IReadOnlyList<Choice> Candidates { get; init; } = Array.Empty<Choice>();
-        public bool ShowCandidates => IsMissing && !IsSearchOpen && Candidates.Count > 0;
-
-        /// <summary>The track this row puts in the playlist, null when it adds none.</summary>
-        internal Guid? PlaylistTrackId => !IsIncluded ? null : Picked?.Id ?? (_matchedByFile ? TrackId : null);
-
-        /// <summary>Set by the dialog: searches the library for the row's search box.</summary>
-        internal Func<string, IReadOnlyList<Track>>? Search { get; init; }
-        internal Action? Changed { get; init; }
-
-        partial void OnPickedChanged(Track? value) => Changed?.Invoke();
-        partial void OnIsIncludedChanged(bool value) => Changed?.Invoke();
-
-        partial void OnSearchTextChanged(string value)
-            => SearchResults = Search is null || string.IsNullOrWhiteSpace(value)
-                ? Array.Empty<Choice>()
-                : Search(value).Select(t => new Choice(t)).ToList();
-
-        [RelayCommand]
-        private void Pick(Choice? choice)
-        {
-            if (choice is null) return;
-            IsSearchOpen = false;
-            IsIncluded = true;
-            Picked = choice.Track;
-        }
-
-        /// <summary>"Change": back to the candidates and the search.</summary>
-        [RelayCommand]
-        private void Unpick() => Picked = null;
-
-        [RelayCommand]
-        private void ToggleSearch()
-        {
-            IsSearchOpen = !IsSearchOpen;
-            if (IsSearchOpen && SearchText.Length == 0)
-                SearchText = HasArtist ? $"{Title} {Artist}" : Title;
-        }
-
-        [RelayCommand]
-        private void ToggleIncluded() => IsIncluded = !IsIncluded;
-    }
-
-    /// <summary>A library song offered for a row: a candidate or a search result.</summary>
-    public sealed record Choice(Track Track)
-    {
-        public string Label => LabelOf(Track);
-        internal static string LabelOf(Track t)
-            => string.IsNullOrWhiteSpace(t.Artist) ? t.Title : $"{t.Title} · {t.Artist}";
-    }
 
     [ObservableProperty] private bool _isBusy;
     /// <summary>Busy reading/fetching and matching (not creating or signing in): the list area

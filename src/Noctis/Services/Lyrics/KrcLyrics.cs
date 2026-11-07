@@ -17,15 +17,15 @@ public static partial class KrcLyrics
 {
     private static ReadOnlySpan<byte> Key => [64, 71, 97, 119, 94, 50, 116, 71, 81, 54, 49, 45, 206, 210, 110, 105];
 
-    [GeneratedRegex(@"^\[(\d+),(\d+)\](.*)$")]
-    private static partial Regex LineRegex();
+    private static readonly Regex _lineRegex = new(@"^\[(\d+),(\d+)\](.*)$", RegexOptions.Compiled);
+    private static Regex LineRegex() => _lineRegex;
 
-    [GeneratedRegex(@"<(\d+),(\d+),\d+>([^<]*)")]
-    private static partial Regex WordRegex();
+    private static readonly Regex _wordRegex = new(@"<(\d+),(\d+),\d+>([^<]*)", RegexOptions.Compiled);
+    private static Regex WordRegex() => _wordRegex;
 
     // "Lyrics by：", "Composed by:", "作词：" — the credit lines Kugou puts above the lyrics.
-    [GeneratedRegex(@"^\s*(?:[\p{L}\p{M}]+\s){0,3}by\s*[:：]|^\s*(?:作词|作曲|编曲|制作人|词|曲)\s*[:：]", RegexOptions.IgnoreCase)]
-    private static partial Regex CreditRegex();
+    private static readonly Regex _creditRegex = new(@"^\s*(?:[\p{L}\p{M}]+\s){0,3}by\s*[:：]|^\s*(?:作词|作曲|编曲|制作人|词|曲)\s*[:：]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex CreditRegex() => _creditRegex;
 
     /// <summary>Decrypts a KRC download. Throws <see cref="InvalidDataException"/> when it isn't one.</summary>
     public static string Decrypt(byte[] krc)

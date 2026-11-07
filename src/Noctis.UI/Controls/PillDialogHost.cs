@@ -303,7 +303,7 @@ public class PillDialogHost : ContentControl
     {
         if (_card is null || TopLevel.GetTopLevel(this)?.FocusManager is not { } focus) return;
         if (focus.GetFocusedElement() is Visual focused && (ReferenceEquals(focused, _card) || _card.IsVisualAncestorOf(focused)))
-            focus.Focus(null); // Avalonia 12: Focus(null) clears (ClearFocus was removed)
+            focus.ClearFocus();
     }
 
     private void EnsureTransitions()

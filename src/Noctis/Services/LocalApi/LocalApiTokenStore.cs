@@ -107,11 +107,13 @@ public sealed class LocalApiTokenStore
         // the chmod, and another account on the machine could read it in between.
         var tmp = FilePath + ".tmp";
         var options = new FileStreamOptions { Mode = FileMode.Create, Access = FileAccess.Write, Share = FileShare.Read };
+#if !WINDOWS && NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             options.UnixCreateMode = UnixFileMode.UserRead | UnixFileMode.UserWrite;
             try { File.Delete(tmp); } catch { } // the mode only applies to a newly created file
         }
+#endif
         using (var writer = new StreamWriter(new FileStream(tmp, options)))
             writer.Write(doc.ToJsonString(WriteOptions));
         File.Move(tmp, FilePath, overwrite: true);

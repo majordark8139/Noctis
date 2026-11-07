@@ -25,14 +25,14 @@ public static class DeezerApi
         if (!string.IsNullOrWhiteSpace(title)) parts.Add(Sanitize(title));
         if (!string.IsNullOrWhiteSpace(album)) parts.Add(Sanitize(album));
         var query = string.Join(" ", parts);
-        return $"https://api.deezer.com/search?q={Uri.EscapeDataString(query)}&limit=10";
+        return $"http://api.deezer.com/search?q={Uri.EscapeDataString(query)}&limit=10";
     }
 
     // Quotes would read as phrase/field syntax; strip them from the term.
     private static string Sanitize(string s) => s.Replace("\"", " ").Trim();
 
-    public static string BuildTrackUrl(long trackId) => $"https://api.deezer.com/track/{trackId}";
-    public static string BuildAlbumUrl(long albumId) => $"https://api.deezer.com/album/{albumId}";
+    public static string BuildTrackUrl(long trackId) => $"http://api.deezer.com/track/{trackId}";
+    public static string BuildAlbumUrl(long albumId) => $"http://api.deezer.com/album/{albumId}";
 
     /// <summary>Returns the id of the first track in a Deezer <c>/search</c> payload, or null.</summary>
     public static long? FirstTrackId(string json)

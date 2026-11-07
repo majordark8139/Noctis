@@ -107,7 +107,7 @@ internal sealed class PluginAudioDecoder : IAudioDecoder
 
         using var p = Process.Start(psi) ?? throw new InvalidOperationException("ffmpeg did not start.");
         using var kill = ct.Register(() => { try { if (!p.HasExited) p.Kill(true); } catch { } });
-        var stderr = p.StandardError.ReadToEndAsync(CancellationToken.None);
+        var stderr = p.StandardError.ReadToEndAsync();
 
         var maxSamples = (long)Math.Ceiling(rate * seconds) + rate; // ffmpeg can run a little past -t
         var samples = new float[Math.Min(maxSamples, rate * 60L * 5)];

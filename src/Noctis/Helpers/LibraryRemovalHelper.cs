@@ -49,7 +49,7 @@ public static class LibraryRemovalHelper
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
             await TrashLocalFilesAsync(tracks, protectedRoots);
             DebugLog.Write("Library",
-                $"remove: trash done in {(long)System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds} ms");
+                $"remove: trash done in {(long)Stopwatch.GetElapsedTime(started).TotalMilliseconds} ms");
         }
 
         return true;

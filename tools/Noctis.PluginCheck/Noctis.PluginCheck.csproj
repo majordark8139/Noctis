@@ -11,13 +11,18 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <!-- Mirrors the app project's conditional TFM (see tests/Noctis.Tests). -->
-    <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
-    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <LangVersion>latest</LangVersion>
+    <AssetTargetFallback>$(AssetTargetFallback);net8.0;net7.0</AssetTargetFallback>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <RootNamespace>Noctis.PluginCheck</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="*" PrivateAssets="all" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Noctis\Noctis.csproj" />
   </ItemGroup>

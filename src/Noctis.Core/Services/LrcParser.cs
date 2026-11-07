@@ -468,12 +468,12 @@ public static partial class LrcParser
 
     // Seconds may run past 59 ("[00:168.80]" = 2:48.80): some taggers never roll them into minutes,
     // and with exactly two digits every line from 1:40 on was dropped (121 library files, 4,349 lines).
-    [GeneratedRegex(@"\[\d{1,3}:\d{2,3}(?:[.:]\d{1,3})?\]")]
-    private static partial Regex LrcTimestampRegex();
+    private static readonly Regex _lrcTimestampRegex = new(@"\[\d{1,3}:\d{2,3}(?:[.:]\d{1,3})?\]", RegexOptions.Compiled);
+    private static Regex LrcTimestampRegex() => _lrcTimestampRegex;
 
-    [GeneratedRegex(@"^\[(ar|ti|al|by|offset|re|ve|length|id):")]
-    private static partial Regex MetadataTagRegex();
+    private static readonly Regex _metadataTagRegex = new(@"^\[(ar|ti|al|by|offset|re|ve|length|id):", RegexOptions.Compiled);
+    private static Regex MetadataTagRegex() => _metadataTagRegex;
 
-    [GeneratedRegex(@"^\[offset:(?<offset>[+-]?\d+)\]$", RegexOptions.IgnoreCase)]
-    private static partial Regex OffsetTagRegex();
+    private static readonly Regex _offsetTagRegex = new(@"^\[offset:(?<offset>[+-]?\d+)\]$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex OffsetTagRegex() => _offsetTagRegex;
 }

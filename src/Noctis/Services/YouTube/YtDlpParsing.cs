@@ -28,8 +28,8 @@ public static partial class YtDlpParsing
 
     public static string ReleaseDownloadUrl() => ReleaseBaseUrl + ReleaseAssetName();
 
-    [GeneratedRegex(@"^(?:https?://)?(?:www\.|m\.|music\.)?(?:youtube\.com/(?:watch\?.*v=|shorts/|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})", RegexOptions.IgnoreCase)]
-    private static partial Regex YouTubeUrlRegex();
+    private static readonly Regex _youTubeUrlRegex = new(@"^(?:https?://)?(?:www\.|m\.|music\.)?(?:youtube\.com/(?:watch\?.*v=|shorts/|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex YouTubeUrlRegex() => _youTubeUrlRegex;
 
     public static bool LooksLikeYouTubeUrl(string? text) =>
         !string.IsNullOrWhiteSpace(text) && YouTubeUrlRegex().IsMatch(text.Trim());
@@ -99,8 +99,8 @@ public static partial class YtDlpParsing
         return parts.Count >= 3 ? parts.ToArray() : null;
     }
 
-    [GeneratedRegex(@"^v?(\d{4}\.\d{1,2}\.\d{1,2}(?:\.\d+)?)")]
-    private static partial Regex VersionRegex();
+    private static readonly Regex _versionRegex = new(@"^v?(\d{4}\.\d{1,2}\.\d{1,2}(?:\.\d+)?)", RegexOptions.Compiled);
+    private static Regex VersionRegex() => _versionRegex;
 
     /// <summary>Orders yt-dlp versions; an unparseable/missing version sorts below any real one.</summary>
     public static int CompareVersions(string? a, string? b)
@@ -181,8 +181,8 @@ public static partial class YtDlpParsing
         return string.Join(" | ", lines.Skip(Math.Max(0, lines.Length - maxLines)));
     }
 
-    [GeneratedRegex(@"https?://[^\s""']*googlevideo\.com[^\s""']*", RegexOptions.IgnoreCase)]
-    private static partial Regex StreamUrlRegex();
+    private static readonly Regex _streamUrlRegex = new(@"https?://[^\s""']*googlevideo\.com[^\s""']*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex StreamUrlRegex() => _streamUrlRegex;
 
     /// <summary>"yt-dlp 2026.08.19" plus " · update available" when a newer release is known.</summary>
     public static string VersionLabel(string? installedVersion, string? latestVersion)
@@ -197,8 +197,8 @@ public static partial class YtDlpParsing
 
     // ── Progress ──────────────────────────────────────────────────────────────
 
-    [GeneratedRegex(@"\[download\]\s+(\d{1,3}(?:\.\d+)?)%")]
-    private static partial Regex ProgressRegex();
+    private static readonly Regex _progressRegex = new(@"\[download\]\s+(\d{1,3}(?:\.\d+)?)%", RegexOptions.Compiled);
+    private static Regex ProgressRegex() => _progressRegex;
 
     /// <summary>Percent from a <c>[download]  45.3% of 3.21MiB at 1.2MiB/s</c> line, else null.</summary>
     public static double? ParseProgressPercent(string? line)

@@ -315,7 +315,7 @@ public sealed class LoonClient : IDisposable
 
         if (_cts != null)
         {
-            await _cts.CancelAsync();
+            _cts.Cancel();
             _cts.Dispose();
             _cts = null;
         }

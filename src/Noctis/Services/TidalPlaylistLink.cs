@@ -21,8 +21,8 @@ public static partial class TidalPlaylistLink
 
     // https://tidal.com/browse/playlist/1b418bb8-90a7-4f87-901d-707993838346?u
     // https://listen.tidal.com/playlist/1b418bb8-…  ·  https://tidal.com/album/302127
-    [GeneratedRegex(@"^https?://(?:www\.|listen\.)?tidal\.com/(?:browse/)?(playlist|album)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+)", RegexOptions.IgnoreCase)]
-    private static partial Regex LinkPattern();
+    private static readonly Regex _linkPattern = new(@"^https?://(?:www\.|listen\.)?tidal\.com/(?:browse/)?(playlist|album)/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex LinkPattern() => _linkPattern;
 
     /// <summary>True when <paramref name="text"/> is a TIDAL playlist or album share link.</summary>
     public static bool TryParse(string? text, out TidalLinkKind kind, out string id)
@@ -35,7 +35,7 @@ public static partial class TidalPlaylistLink
         var isAlbum = m.Groups[1].Value.Equals("album", StringComparison.OrdinalIgnoreCase);
         var idText = m.Groups[2].Value;
         // Playlists are UUIDs, albums numeric — a mismatch is not a link we know.
-        if (isAlbum != idText.All(char.IsAsciiDigit)) return false;
+        if (isAlbum != idText.All(c => c >= '0' && c <= '9')) return false;
         kind = isAlbum ? TidalLinkKind.Album : TidalLinkKind.Playlist;
         id = idText.ToLowerInvariant();
         return true;

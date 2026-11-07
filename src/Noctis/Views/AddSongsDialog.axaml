@@ -7,7 +7,7 @@
         x:DataType="vm:AddSongsDialogViewModel"
         Title="{loc:T AddSongs.AddSongs}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -130,7 +130,7 @@
                  Margin="28,16,28,6"
                  Classes="pill-field"
                  Text="{Binding SearchText}"
-                 PlaceholderText="{loc:T AddSongs.SearchLibrary}"
+                 Watermark="{loc:T AddSongs.SearchLibrary}"
                  Padding="10,10,16,10">
             <TextBox.InnerLeftContent>
                 <PathIcon Data="{StaticResource SearchIcon}" Width="13" Height="13" Opacity="0.5"

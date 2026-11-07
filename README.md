@@ -6,11 +6,21 @@
 
 **A music player that respects what's yours. Zero tracking, total control.**
 
-[![Discord](https://img.shields.io/badge/DISCORD-JOIN%20SERVER-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=4F4F4F)](https://discord.gg/BNCDZQUVx7) &nbsp; [![Downloads](https://img.shields.io/github/downloads/heartached/Noctis/total?color=E74856&style=for-the-badge&cacheSeconds=600)](https://github.com/heartached/Noctis/releases) &nbsp; [![Support](https://img.shields.io/badge/SUPPORT-BUY%20ME%20A%20COFFEE-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black&labelColor=4F4F4F)](https://buymeacoffee.com/heartached)
+[![Discord](https://img.shields.io/badge/DISCORD-JOIN%20SERVER-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=4F4F4F)](https://discord.gg/BNCDZQUVx7) &nbsp; [![Upstream](https://img.shields.io/badge/UPSTREAM-heartached%2FNoctis-blueviolet?style=for-the-badge)](https://github.com/heartached/Noctis) &nbsp; [![Win7 Release](https://img.shields.io/github/v/release/majordark8139/Noctis?color=E74856&label=WIN7%20EDITION&style=for-the-badge)](https://github.com/majordark8139/Noctis/releases) &nbsp; [![Support Upstream](https://img.shields.io/badge/SUPPORT-BUY%20ME%20A%20COFFEE-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black&labelColor=4F4F4F)](https://buymeacoffee.com/heartached)
 
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue.svg?style=for-the-badge)]()
+[![Platform](https://img.shields.io/badge/Platform-Windows%207%20SP1%20%7C%20Windows%2010%2F11%20%7C%20macOS%20%7C%20Linux-blue.svg?style=for-the-badge)]()
 
 </div>
+
+---
+
+> [!NOTE]
+> ### 📢 Fork Disclaimer & Upstream Attribution
+> This repository is a dedicated **Windows 7 SP1 (x64) & Bit-Perfect Lossless Edition** of Noctis, built upon **v1.6.7 and forwards**.
+>
+> - **Windows 7 Compatibility & Audio Upgrades**: This fork incorporates a self-contained .NET 6 backport, SkiaSharp per-pixel Aero Glass transparency rendering, Win32 round-rect border clipping, bundled LibVLC 3.0.21 x64 offline codecs, Deezer TLS 1.2 compatibility, extended interface scaling (down to 50%), and a dedicated **Bit-Perfect WASAPI Exclusive Mode** audio transport with dynamic DAC clock-locking and hardware lock release.
+> - **Previous Versions (< 1.6.7) & Upstream Releases**: For all prior versions of Noctis (v1.0.0 through v1.6.6), upstream feature discussions, or official releases targeting Windows 10/11, macOS, and Linux, please visit the original upstream repository: [**heartached/Noctis**](https://github.com/heartached/Noctis).
+> - All credit for Noctis's design, original architecture, and UI concept belongs to the original author, [**heartached**](https://github.com/heartached).
 
 ---
 
@@ -36,7 +46,24 @@
 
 ## Install
 
-**Windows**, via a package manager:
+### 🪟 Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
+
+For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
+- 📦 **[Noctis-v1.6.7-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.7/Noctis-v1.6.7-Win7-x64.zip)** (from [Release v1.6.7](https://github.com/majordark8139/Noctis/releases/tag/v1.6.7))
+
+**Windows 7 Edition Highlights:**
+- **Zero prerequisites**: Fully self-contained .NET 6 package — simply extract and run `Noctis.exe` with no .NET runtime or desktop frameworks required.
+- **Bundled LibVLC 3.0.21 x64**: Native offline audio decoding with full format coverage (FLAC, ALAC, WAV, APE, Opus, AAC, MP3) without system codec dependencies.
+- **SkiaSharp Per-Pixel Transparency**: Full Aero Glass integration with zero black box, white wedge, or window clipping artifacts.
+- **Bit-Perfect Audio**: Direct WASAPI Exclusive Mode transport directly to your DAC with auto sample-rate matching (44.1 kHz up to 192 kHz).
+- **Dedicated Stop Button**: Halts playback and immediately frees exclusive audio hardware locks for other apps.
+- **High-DPI / Custom Scaling**: Expanded UI scaling range down to **50%** (50% to 150%) for customized display resolutions.
+
+---
+
+### 💻 Windows 10 & 11 (Upstream)
+
+Via package manager from upstream:
 
 ```powershell
 # winget
@@ -47,17 +74,23 @@ scoop bucket add noctis https://github.com/heartached/scoop-bucket
 scoop install noctis
 ```
 
-Or download the installer or portable zip from the
-[latest release](https://github.com/heartached/Noctis/releases/latest).
+Or download the installer or portable zip from upstream
+[heartached/Noctis latest release](https://github.com/heartached/Noctis/releases/latest).
 
-**macOS and Linux**: download the `.dmg` or AppImage from the
-[latest release](https://github.com/heartached/Noctis/releases/latest).
-Both ship with everything they need, so there is nothing else to install.
+---
 
-**Self-hosting**: `noctis-server` is the same library scanner and OpenSubsonic API
-without a window, for a NAS, a VPS or Docker. Grab `noctis-server-linux-x64.tar.gz`
-or `noctis-server-linux-arm64.tar.gz` from the
-[latest release](https://github.com/heartached/Noctis/releases/latest), or build the image:
+### 🍎 macOS & 🐧 Linux (Upstream)
+
+Download the `.dmg` or AppImage from upstream
+[heartached/Noctis latest release](https://github.com/heartached/Noctis/releases/latest).
+Both ship self-contained with everything they need.
+
+---
+
+### 🌐 Self-Hosting (`noctis-server`)
+
+`noctis-server` is the same library scanner and OpenSubsonic API without a window, for a NAS, a VPS or Docker. Grab `noctis-server-linux-x64.tar.gz` or `noctis-server-linux-arm64.tar.gz` from the
+[upstream release](https://github.com/heartached/Noctis/releases/latest), or build the image:
 
 ```sh
 docker build -t noctis-server .
@@ -74,7 +107,9 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 ### Sound
 
 - [x] Plays FLAC, ALAC, WAV, AIFF, APE, WavPack, MP3, AAC, OGG, Opus, WMA, M4A and M4B audiobooks
-- [x] Bit-perfect exclusive output on Windows
+- [x] Bit-perfect WASAPI Exclusive Mode audio transport directly to DAC hardware with auto sample-rate matching (44.1 kHz to 192 kHz)
+- [x] Dedicated hardware Stop button that resets playback and immediately frees exclusive DAC locks for other applications
+- [x] Configurable Stop button display toggle in Player Island settings (with optional Exclusive-Mode-only display)
 - [x] Parametric EQ with presets, and a saved preset per track if you want one
 - [x] Gapless playback, crossfade and AutoMix transitions
 - [x] ReplayGain and Sound Check volume leveling
@@ -125,7 +160,9 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 - [x] Ambient blurred backdrops on the lyrics page
 - [x] Themes and accent colors, plus a custom theme editor
 - [x] Liquid Glass translucent window mode
-- [x] Resizable mini player with search, queue, volume and karaoke lyrics
+- [x] Windows 7 SP1 native Aero Glass title bar with per-pixel Skia transparency
+- [x] Extended interface scaling options from 50% to 150% in 10% steps
+- [x] Resizable mini player with search, queue, volume and karaoke lyrics (with zero-wedge rounded popups on Win7)
 - [x] Kawarp warped background, album pages tinted from the cover, accent color that can follow the album art
 - [x] Settings organized into 13 searchable pages
 
@@ -168,14 +205,27 @@ Community plugins start off (restricted mode) and ask for approval before they r
 
 ## Build
 
+### Building Windows 7 SP1 x64 (This Fork)
+
 ```bash
-git clone https://github.com/heartached/Noctis
+git clone https://github.com/majordark8139/Noctis.git
+cd Noctis
+dotnet publish src/Noctis/Noctis.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o ./dist/noctis-win7
+```
+
+**Requirements:**
+- .NET 6 SDK & .NET 8 SDK
+- Windows (or Linux cross-build) host
+
+### Building Upstream (Windows 10/11, macOS, Linux)
+
+```bash
+git clone https://github.com/heartached/Noctis.git
 cd Noctis
 dotnet run --project src/Noctis/Noctis.csproj
 ```
 
 **Requirements:** .NET 10 SDK
-
 Supported platforms: Windows 10/11 (x64), macOS 12+ (Intel and Apple Silicon), Linux (x64 and ARM64).
 
 ### Native dependency: libvlc
@@ -204,7 +254,7 @@ you are building from source.
 
 ### Running a downloaded build (macOS / Linux)
 
-The macOS and Linux artifacts on the [Releases page](https://github.com/heartached/Noctis/releases)
+The macOS and Linux artifacts on the upstream [Releases page](https://github.com/heartached/Noctis/releases)
 are unsigned self-contained builds.
 
 **macOS**, using the portable zip:
@@ -227,15 +277,6 @@ chmod +x noctis/Noctis
 ./noctis/Noctis
 ```
 
-### Build for another OS
-
-```bash
-dotnet publish src/Noctis/Noctis.csproj -c Release -r linux-x64   --self-contained
-dotnet publish src/Noctis/Noctis.csproj -c Release -r osx-arm64   --self-contained
-dotnet publish src/Noctis/Noctis.csproj -c Release -r osx-x64     --self-contained
-dotnet publish src/Noctis/Noctis.csproj -c Release -r linux-arm64 --self-contained
-```
-
 ### Build the server
 
 ```bash
@@ -251,11 +292,13 @@ docker build -t noctis-server .
 
 ---
 
-## Feedback
+## Feedback & Issues
 
-If you have any feedback about bugs, feature requests, etc. about the app, please let me know through [issues](https://github.com/heartached/Noctis/issues).
+- **For Windows 7 SP1 compatibility, WASAPI Exclusive Mode, or issues specific to this fork:**
+  Please open an issue on [majordark8139/Noctis Issues](https://github.com/majordark8139/Noctis/issues).
 
-Yours Truly, heartached.
+- **For general upstream features, suggestions, or previous versions (v1.0.0 through v1.6.6):**
+  Please visit the original upstream project by heartached at [heartached/Noctis Issues](https://github.com/heartached/Noctis/issues).
 
 ---
 
@@ -263,7 +306,9 @@ Yours Truly, heartached.
 
 MIT, see [LICENSE](LICENSE)
 
+Original work Copyright (c) heartached. Windows 7 backport & WASAPI enhancements maintained by majordark8139.
+
 ---
 
 > [!WARNING]
-> Windows may flag the installer as untrusted because it isn't code-signed. This is normal for indie software and the app is safe to use.
+> Windows may flag the portable executable as untrusted because it isn't code-signed with an expensive commercial certificate. This is normal for open-source indie software and the app is 100% safe to use.

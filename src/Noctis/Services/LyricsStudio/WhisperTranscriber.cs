@@ -207,7 +207,7 @@ public sealed class WhisperTranscriber
                     seek += step;
                 }
                 // Session-log record of where a song's time went (users report "slow"; this says why).
-                var seconds = System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalSeconds;
+                var seconds = Stopwatch.GetElapsedTime(started).TotalSeconds;
                 var audio = pcm16k.Length / (double)PcmDecoder16k.SampleRate;
                 DebugLogger.Info(DebugLogger.Category.Lyrics, "LyricsStudio.Listened",
                     $"audio={audio:0}s windows={decoded} resumed={resumes} languageWindows={languageWindows} seconds={seconds:0.0} rtf={seconds / Math.Max(1, audio):0.00} threads={Threads} runtime={RuntimeOptions.LoadedLibrary}");

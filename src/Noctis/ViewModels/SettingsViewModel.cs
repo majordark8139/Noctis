@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Sockets;
@@ -1115,6 +1115,8 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>GitHub #94: EQ on/off button on the island.</summary>
     [ObservableProperty] private bool _playbackBarShowEqualizer;
     [ObservableProperty] private bool _playbackBarShowRepeat;
+    [ObservableProperty] private bool _playbackBarShowStopButton;
+    [ObservableProperty] private bool _playbackBarStopButtonExclusiveOnly;
     [ObservableProperty] private bool _playbackBarShowFavorite;
     [ObservableProperty] private bool _playbackBarShowMiniPlayer = true;
     [ObservableProperty] private bool _playbackBarShowIdlePill;
@@ -2535,8 +2537,11 @@ public partial class SettingsViewModel : ViewModelBase
         var devices = AudioOutputDeviceCatalog.Enumerate();
         foreach (var d in devices)
             _outputDeviceNames[d.Id] = d.Name;
-        OutputDeviceOptions = BuildOutputDeviceOptions(devices, selectedId,
+        var newOptions = BuildOutputDeviceOptions(devices, selectedId,
             _outputDeviceNames.GetValueOrDefault(selectedId));
+        if (OutputDeviceOptions != null && OutputDeviceOptions.SequenceEqual(newOptions))
+            return;
+        OutputDeviceOptions = newOptions;
         _selectedOutputDeviceId = selectedId;
         OnPropertyChanged(nameof(SelectedOutputDevice));
         OnPropertyChanged(nameof(OutputDeviceMissing));
@@ -3324,6 +3329,8 @@ public partial class SettingsViewModel : ViewModelBase
             PlaybackBarShowShuffle = _settings.PlaybackBarShowShuffle;
             PlaybackBarShowEqualizer = _settings.PlaybackBarShowEqualizer;
             PlaybackBarShowRepeat = _settings.PlaybackBarShowRepeat;
+            PlaybackBarShowStopButton = _settings.PlaybackBarShowStopButton;
+            PlaybackBarStopButtonExclusiveOnly = _settings.PlaybackBarStopButtonExclusiveOnly;
             PlaybackBarShowFavorite = _settings.PlaybackBarShowFavorite;
             PlaybackBarShowMiniPlayer = _settings.PlaybackBarShowMiniPlayer;
             PlaybackBarShowIdlePill = _settings.PlaybackBarShowIdlePill;
@@ -3852,6 +3859,8 @@ public partial class SettingsViewModel : ViewModelBase
         _settings.PlaybackBarShowShuffle = PlaybackBarShowShuffle;
         _settings.PlaybackBarShowEqualizer = PlaybackBarShowEqualizer;
         _settings.PlaybackBarShowRepeat = PlaybackBarShowRepeat;
+        _settings.PlaybackBarShowStopButton = PlaybackBarShowStopButton;
+        _settings.PlaybackBarStopButtonExclusiveOnly = PlaybackBarStopButtonExclusiveOnly;
         _settings.PlaybackBarShowFavorite = PlaybackBarShowFavorite;
         _settings.PlaybackBarShowMiniPlayer = PlaybackBarShowMiniPlayer;
         _settings.PlaybackBarShowIdlePill = PlaybackBarShowIdlePill;
@@ -4206,6 +4215,8 @@ public partial class SettingsViewModel : ViewModelBase
         _player.IslandShowShuffle = PlaybackBarShowShuffle;
         _player.IslandShowEqualizer = PlaybackBarShowEqualizer;
         _player.IslandShowRepeat = PlaybackBarShowRepeat;
+        _player.IslandShowStopButton = PlaybackBarShowStopButton;
+        _player.IslandStopButtonExclusiveOnly = PlaybackBarStopButtonExclusiveOnly;
         _player.IslandShowFavorite = PlaybackBarShowFavorite;
         _player.IslandShowMiniPlayer = PlaybackBarShowMiniPlayer && MiniPlayerEnabled;
         _player.IslandShowTime = PlaybackBarShowTime;
@@ -5588,6 +5599,18 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     partial void OnPlaybackBarShowRepeatChanged(bool value)
+    {
+        ApplyPlayerSettings();
+        if (_settingsLoaded) _ = SaveAsync();
+    }
+
+    partial void OnPlaybackBarShowStopButtonChanged(bool value)
+    {
+        ApplyPlayerSettings();
+        if (_settingsLoaded) _ = SaveAsync();
+    }
+
+    partial void OnPlaybackBarStopButtonExclusiveOnlyChanged(bool value)
     {
         ApplyPlayerSettings();
         if (_settingsLoaded) _ = SaveAsync();
@@ -7763,6 +7786,8 @@ public partial class SettingsViewModel : ViewModelBase
             PlaybackBarShowShuffle = defaultSettings.PlaybackBarShowShuffle;
             PlaybackBarShowEqualizer = defaultSettings.PlaybackBarShowEqualizer;
             PlaybackBarShowRepeat = defaultSettings.PlaybackBarShowRepeat;
+            PlaybackBarShowStopButton = defaultSettings.PlaybackBarShowStopButton;
+            PlaybackBarStopButtonExclusiveOnly = defaultSettings.PlaybackBarStopButtonExclusiveOnly;
             PlaybackBarShowFavorite = defaultSettings.PlaybackBarShowFavorite;
             PlaybackBarShowMiniPlayer = defaultSettings.PlaybackBarShowMiniPlayer;
             PlaybackBarShowIdlePill = defaultSettings.PlaybackBarShowIdlePill;
@@ -8543,7 +8568,8 @@ public partial class SettingsViewModel : ViewModelBase
             try
             {
                 await using var fs = File.OpenRead(pending.InstallerPath);
-                var hash = Convert.ToHexString(await System.Security.Cryptography.SHA256.HashDataAsync(fs)).ToLowerInvariant();
+                using var sha = System.Security.Cryptography.SHA256.Create();
+                var hash = Convert.ToHexString(await Task.Run(() => sha.ComputeHash(fs))).ToLowerInvariant();
                 match = string.Equals(hash, pending.Sha256, StringComparison.OrdinalIgnoreCase);
             }
             catch (Exception ex)
@@ -9003,8 +9029,8 @@ public partial class SettingsViewModel : ViewModelBase
     private void OpenLatestRelease()
     {
         var url = string.IsNullOrEmpty(LatestVersionTag)
-            ? "https://github.com/heartached/Noctis/releases/latest"
-            : $"https://github.com/heartached/Noctis/releases/tag/{LatestVersionTag}";
+            ? "https://github.com/majordark8139/Noctis/releases/latest"
+            : $"https://github.com/majordark8139/Noctis/releases/tag/{LatestVersionTag}";
         Helpers.PlatformHelper.OpenUrl(url);
     }
 

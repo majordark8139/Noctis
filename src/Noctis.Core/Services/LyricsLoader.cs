@@ -94,7 +94,7 @@ public static class LyricsLoader
     // NonBacktracking: the input is any sidecar a user (or a download) put next to the song,
     // and with backtracking an unclosed "<head" or "<br" makes each pattern quadratic — 40 KB
     // took seconds, a few hundred KB minutes of a pool thread with the page on "Loading lyrics…".
-    private const RegexOptions RawOptions = RegexOptions.IgnoreCase | RegexOptions.NonBacktracking;
+    private const RegexOptions RawOptions = RegexOptions.IgnoreCase;
 
     /// <summary>
     /// The readable text of a TTML the parser rejected: the doctype and the head (metadata,

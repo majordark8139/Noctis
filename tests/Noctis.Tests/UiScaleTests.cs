@@ -84,10 +84,10 @@ public class UiScaleTests : IDisposable
     public void Choices_AndSnapping()
     {
         Assert.Equal(100, new AppSettings().UiScalePercent);
-        Assert.Equal(new[] { 90, 100, 110, 125, 150, 175, 200 }, AppSettings.UiScaleChoices);
+        Assert.Equal(new[] { 50, 60, 70, 75, 80, 85, 90, 100, 110, 125, 150, 175, 200 }, AppSettings.UiScaleChoices);
         Assert.Equal(150, AppSettings.SnapUiScale(140));
         Assert.Equal(200, AppSettings.SnapUiScale(900));
-        Assert.Equal(90, AppSettings.SnapUiScale(-5));
+        Assert.Equal(50, AppSettings.SnapUiScale(-5));
         var s = new AppSettings { UiScalePercent = 133 };
         s.ClampToValidRanges();
         Assert.Equal(125, s.UiScalePercent);

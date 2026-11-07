@@ -31,8 +31,8 @@ public partial class YouTubeMusicLyricsService : IYouTubeMusicLyricsService
     internal const int MaxCacheEntries = 256;
     private readonly ConcurrentDictionary<string, LrcLibResult?> _cache = new();
 
-    [GeneratedRegex(@"^(?:(\d+):)?(\d{1,2}):(\d{2})$")]
-    private static partial Regex DurationRegex();
+    private static readonly Regex _durationRegex = new(@"^(?:(\d+):)?(\d{1,2}):(\d{2})$", RegexOptions.Compiled);
+    private static Regex DurationRegex() => _durationRegex;
 
     public YouTubeMusicLyricsService(HttpClient httpClient)
     {

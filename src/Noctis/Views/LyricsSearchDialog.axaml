@@ -9,7 +9,7 @@
         x:DataType="vm:LyricsSearchViewModel"
         Title="{loc:T LyricsSearch.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -122,9 +122,9 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
             <TextBox Grid.Column="2" Classes="pill-field" Text="{Binding Artist}"
-                     PlaceholderText="{loc:T LyricsSearch.ArtistWatermark}" />
+                     Watermark="{loc:T LyricsSearch.ArtistWatermark}" />
             <TextBox Grid.Column="4" Classes="pill-field" Text="{Binding Title}"
-                     PlaceholderText="{loc:T LyricsSearch.TitleWatermark}" />
+                     Watermark="{loc:T LyricsSearch.TitleWatermark}" />
             <Button Grid.Column="6"
                     Classes="pill-secondary ls-search"
                     BorderThickness="1.5"

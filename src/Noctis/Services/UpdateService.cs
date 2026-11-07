@@ -9,13 +9,11 @@ namespace Noctis.Services;
 
 public sealed class UpdateService
 {
-    // Fetch the recent releases list (instead of /releases/latest) so pre-releases are included.
-    // GitHub excludes pre-releases from /releases/latest, which would hide prerelease builds from
-    // the in-app updater. We pick the highest-version release that has this platform's installer asset.
-    private const string ReleaseUrl = "https://api.github.com/repos/heartached/Noctis/releases?per_page=10";
+    // Fetch the recent releases list from the Windows 7 port repository
+    private const string ReleaseUrl = "https://api.github.com/repos/majordark8139/Noctis/releases?per_page=10";
 
     // Developer Mode version manager fetches the full recent history (GitHub caps per_page at 100).
-    private const string ReleaseListUrl = "https://api.github.com/repos/heartached/Noctis/releases?per_page=100";
+    private const string ReleaseListUrl = "https://api.github.com/repos/majordark8139/Noctis/releases?per_page=100";
 
     private readonly HttpClient _http;
 
@@ -94,7 +92,7 @@ public sealed class UpdateService
     /// build over itself). False for Scoop / Windows-portable / non-writable copies,
     /// where the in-app installer would create a second, parallel install or fail.
     /// </summary>
-    public static bool SupportsInAppUpdate => Source == InstallSource.Installed;
+    public static bool SupportsInAppUpdate => OperatingSystem.IsWindows() || Source == InstallSource.Installed;
 
     /// <summary>
     /// Short guidance for updating a package-manager / portable copy, or null
@@ -268,7 +266,7 @@ public sealed class UpdateService
             InstallerSize = installerAsset?.Size ?? 0,
             InstallerAssetName = installerAsset?.Name,
             ChecksumsApiUrl = checksumsAsset?.Url,
-            ReleaseUrl = best.Release.HtmlUrl ?? $"https://github.com/heartached/Noctis/releases/tag/{best.Release.TagName}",
+            ReleaseUrl = best.Release.HtmlUrl ?? $"https://github.com/majordark8139/Noctis/releases/tag/{best.Release.TagName}",
             PublishedAt = best.Release.PublishedAt,
             WarningText = ExtractReleaseWarning(best.Release.Body)
         };
@@ -319,7 +317,7 @@ public sealed class UpdateService
 
             var installerAsset = FindInstallerAsset(release);
             var checksumsAsset = FindChecksumsAsset(release);
-            var releaseUrl = release.HtmlUrl ?? $"https://github.com/heartached/Noctis/releases/tag/{release.TagName}";
+            var releaseUrl = release.HtmlUrl ?? $"https://github.com/majordark8139/Noctis/releases/tag/{release.TagName}";
 
             items.Add(new ReleaseListItem
             {
@@ -422,7 +420,9 @@ public sealed class UpdateService
             return release.Assets.FirstOrDefault(a =>
                 a.Name != null &&
                 a.Name.StartsWith("Noctis-", StringComparison.OrdinalIgnoreCase) &&
-                a.Name.EndsWith("-Setup.exe", StringComparison.OrdinalIgnoreCase));
+                (a.Name.EndsWith("-Win7-x64.zip", StringComparison.OrdinalIgnoreCase) ||
+                 a.Name.EndsWith("-windows-x64.zip", StringComparison.OrdinalIgnoreCase) ||
+                 a.Name.EndsWith("-Setup.exe", StringComparison.OrdinalIgnoreCase)));
         }
 
         if (OperatingSystem.IsMacOS())
@@ -552,14 +552,16 @@ public sealed class UpdateService
         // Installable downloads also pin the repo, not just the host: IsTrustedGitHubUrl accepts
         // any GitHub repo's assets, and an unattended install must only ever run our own releases.
         if (requireChecksums && (!IsConfiguredRepoAssetUrl(url) || !IsConfiguredRepoAssetUrl(checksumsUrl)))
-            throw new InvalidOperationException("Refusing an update asset from outside heartached/Noctis.");
+            throw new InvalidOperationException("Refusing an update asset from outside majordark8139/Noctis.");
 
+#if !WINDOWS && NET7_0_OR_GREATER
         if (destinationPath is null && OperatingSystem.IsLinux())
         {
             const UnixFileMode ownerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute;
             Directory.CreateDirectory(InstallerDirectory, ownerOnly);
             File.SetUnixFileMode(InstallerDirectory, ownerOnly); // a folder that already existed too
         }
+#endif
 
         // Random per-run filename: a fixed predictable path invited a same-user
         // verify-then-launch swap (TOCTOU) on the elevated installer.
@@ -650,6 +652,11 @@ public sealed class UpdateService
 
         if (OperatingSystem.IsWindows())
         {
+            if (installerPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                return LaunchWindowsZipSelfUpdate(installerPath);
+            }
+
             try
             {
                 var proc = Process.Start(new ProcessStartInfo
@@ -788,6 +795,67 @@ public sealed class UpdateService
         return false;
     }
 
+    private static bool LaunchWindowsZipSelfUpdate(string zipPath)
+    {
+        try
+        {
+            var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var exePath = Process.GetCurrentProcess().MainModule?.FileName ?? Path.Combine(appDir, "Noctis.exe");
+            var pid = Environment.ProcessId;
+
+            var tempDir = Path.GetTempPath();
+            var runTag = Guid.NewGuid().ToString("N")[..8];
+            var batPath = Path.Combine(tempDir, $"noctis_update_{runTag}.cmd");
+            var vbsPath = Path.Combine(tempDir, $"noctis_unzip_{runTag}.vbs");
+
+            // VBScript to extract zip contents into appDir using Windows Shell.Application (supported natively on Win7 through Win11)
+            var vbsCode =
+                "Set fso = CreateObject(\"Scripting.FileSystemObject\")\r\n" +
+                "Set shell = CreateObject(\"Shell.Application\")\r\n" +
+                "Set zip = shell.NameSpace(WScript.Arguments(0))\r\n" +
+                "Set target = shell.NameSpace(WScript.Arguments(1))\r\n" +
+                "If Not (zip Is Nothing) And Not (target Is Nothing) Then\r\n" +
+                "    target.CopyHere zip.Items, 16\r\n" +
+                "End If\r\n";
+
+            File.WriteAllText(vbsPath, vbsCode);
+
+            // Batch script to wait for Noctis to exit, extract update, relaunch, and clean up
+            var batCode =
+                "@echo off\r\n" +
+                ":wait_exit\r\n" +
+                $"tasklist /FI \"PID eq {pid}\" 2>NUL | find \"{pid}\" >NUL\r\n" +
+                "if not errorlevel 1 (\r\n" +
+                "    ping -n 2 127.0.0.1 >NUL\r\n" +
+                "    goto wait_exit\r\n" +
+                ")\r\n" +
+                $"cscript //nologo \"{vbsPath}\" \"{zipPath}\" \"{appDir}\"\r\n" +
+                $"start \"\" \"{exePath}\"\r\n" +
+                $"del \"{zipPath}\" 2>NUL\r\n" +
+                $"del \"{vbsPath}\" 2>NUL\r\n" +
+                "(goto) 2>NUL & del \"%~f0\" 2>NUL\r\n";
+
+            File.WriteAllText(batPath, batCode);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "cmd.exe",
+                Arguments = $"/c \"{batPath}\"",
+                CreateNoWindow = true,
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden
+            };
+
+            var proc = Process.Start(psi);
+            return proc != null;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[UpdateService] LaunchWindowsZipSelfUpdate failed: {ex.Message}");
+            return false;
+        }
+    }
+
     // ── Automatic updates (opt-in) ──
 
     /// <summary>Set at launch when this process is the version a queued auto-update installed.</summary>
@@ -896,7 +964,8 @@ public sealed class UpdateService
             // manifest check, so nothing swapped in since the download can execute.
             string actual;
             using (var fs = File.OpenRead(path))
-                actual = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(fs)).ToLowerInvariant();
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+                actual = Convert.ToHexString(sha.ComputeHash(fs)).ToLowerInvariant();
             if (!string.Equals(actual, pending.Sha256, StringComparison.OrdinalIgnoreCase))
             {
                 DiscardPending(store, state, pending, owned: true, "failed SHA-256 re-check", block: true, notify: true);
@@ -1022,7 +1091,7 @@ public sealed class UpdateService
             || host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase);
     }
 
-    private const string RepoAssetPathPrefix = "/repos/heartached/Noctis/releases/assets/";
+    private const string RepoAssetPathPrefix = "/repos/majordark8139/Noctis/releases/assets/";
 
     /// <summary>
     /// True only for this repo's release-asset API URL
@@ -1040,7 +1109,7 @@ public sealed class UpdateService
         var path = uri.AbsolutePath;
         if (!path.StartsWith(RepoAssetPathPrefix, StringComparison.OrdinalIgnoreCase)) return false;
         var id = path[RepoAssetPathPrefix.Length..];
-        return id.Length > 0 && id.All(char.IsAsciiDigit);
+        return id.Length > 0 && id.All(c => c >= '0' && c <= '9');
     }
 
     /// <summary>

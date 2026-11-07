@@ -53,8 +53,23 @@ public partial class SettingsView : UserControl
 
         // Output Device picker: re-enumerate the endpoints as the dropdown opens, so a
         // just-plugged DAC (or a default-device change) shows up without leaving Settings.
+        var isRefreshingOutputDevices = false;
         OutputDeviceCombo.DropDownOpened += (_, _) =>
-            _trackedViewModel?.RefreshOutputDevicesCommand.Execute(null);
+        {
+            if (isRefreshingOutputDevices) return;
+            isRefreshingOutputDevices = true;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                try
+                {
+                    _trackedViewModel?.RefreshOutputDevicesCommand.Execute(null);
+                }
+                finally
+                {
+                    isRefreshingOutputDevices = false;
+                }
+            }, Avalonia.Threading.DispatcherPriority.Background);
+        };
 
         // Pre-amp pill slider: the visible track/fill/thumb are drawn on a Canvas and
         // positioned from code-behind. The real Slider is transparent and only handles

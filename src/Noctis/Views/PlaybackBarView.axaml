@@ -705,6 +705,19 @@
                                                  IsPlaying="{Binding State, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:PlaybackState.Playing}}" />
                     </Button>
 
+                    <!-- Stop button -->
+                    <Button Classes="pill-btn transport-btn tx"
+                            Command="{Binding StopCommand}"
+                            ToolTip.Tip="{loc:T PlaybackBar.StopTip}"
+                            IsVisible="{Binding IsStopButtonVisible}"
+                            Width="34" Height="34">
+                        <Viewbox Width="16" Height="16">
+                            <Canvas Width="24" Height="24">
+                                <Path Fill="{DynamicResource IslandIconFill}" Data="{StaticResource StopIcon}"/>
+                            </Canvas>
+                        </Viewbox>
+                    </Button>
+
                     <!-- Forward button -->
                     <Button Classes="pill-btn transport-btn tx"
                             Command="{Binding NextCommand}"

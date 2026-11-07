@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:Noctis.Localization"
              xmlns:vm="using:Noctis.ViewModels"
@@ -481,7 +481,6 @@
                                                      Background="Transparent" BorderThickness="0"
                                                      Foreground="{DynamicResource IslandForeground}"
                                                      CaretBrush="{DynamicResource IslandForeground}"
-                                                     PlaceholderForeground="{DynamicResource IslandForegroundSecondary}"
                                                      FontSize="13" Padding="0,2,4,2"
                                                      VerticalAlignment="Center"/>
                                             <Button x:Name="SearchClearButton"

@@ -146,7 +146,7 @@ public class KaraokeRestingWords : Control
         if (UseLayoutRounding)
         {
             var dpi = LayoutHelper.GetLayoutScale(this);
-            size = LayoutHelper.RoundLayoutSizeUp(size, dpi);
+            size = LayoutHelper.RoundLayoutSizeUp(size, dpi, dpi);
         }
         return (size, scale);
     }

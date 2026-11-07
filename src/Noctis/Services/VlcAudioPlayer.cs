@@ -2239,7 +2239,7 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
                     var sink = WasapiGainOutput.TryCreateExclusive(rate, channels, target, out var reason);
                     if (sink != null)
                     {
-                        notice = $"Exclusive output active: {sink.SampleRate / 1000.0:0.#} kHz / {(sink.BitsPerSample == 32 ? "32-bit float" : $"{sink.BitsPerSample}-bit")}";
+                        notice = $"Exclusive output active: {sink.SampleRate / 1000.0:0.#} kHz (Bit-perfect direct transport, {(sink.BitsPerSample == 32 ? "32-bit float" : $"{sink.BitsPerSample}-bit")} stream)";
                     }
                     else
                     {
@@ -5495,6 +5495,7 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
         _positionTimer.Stop();
         _isPaused = false;
         _transitionInFlight = false;
+        try { PositionChanged?.Invoke(this, TimeSpan.Zero); } catch { }
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
@@ -5512,8 +5513,20 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
                 var oldMedia = _currentMedia;
                 _currentMedia = null;
                 oldMedia?.Dispose();
+
+                // Explicitly dispose and clear WASAPI exclusive output sink
+                // so the audio hardware / DAC lock is immediately released for other applications.
+                lock (_exclusiveSinkLock)
+                {
+                    try { _exclusiveOut?.Dispose(); } catch { }
+                    _exclusiveOut = null;
+                }
+                _keepAlive?.SetSuspended(false);
+
                 DebugLogger.Info(DebugLogger.Category.Playback, "VLC.Stop",
                     $"session={CurrentSessionId}, engine={_gaplessEngine}");
+
+                try { OutputModeChanged?.Invoke(this, OutputDescription); } catch { }
             }
             finally
             {

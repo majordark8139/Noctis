@@ -434,6 +434,13 @@ public partial class PlayerViewModel : ViewModelBase
     /// <summary>Repeat after Next, and the favorite heart on the right: opt-in since the
     /// track-box layout, so the stock bar is transport + box + lyrics/queue/volume.</summary>
     [ObservableProperty] private bool _islandShowRepeat;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStopButtonVisible))]
+    private bool _islandShowStopButton;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStopButtonVisible))]
+    private bool _islandStopButtonExclusiveOnly;
+    public bool IsStopButtonVisible => IslandShowStopButton && (!IslandStopButtonExclusiveOnly || _audioPlayer.ExclusiveModeActive || (_settings?.ExclusiveAudioEnabled ?? false));
     [ObservableProperty] private bool _islandShowFavorite;
     /// <summary>GitHub #80: the mini player button in the right cluster (Settings → Player).</summary>
     [ObservableProperty] private bool _islandShowMiniPlayer = true;
@@ -859,6 +866,29 @@ public partial class PlayerViewModel : ViewModelBase
                 }
                 break;
         }
+    }
+
+    [RelayCommand]
+    public void Stop()
+    {
+        DebugLogger.Info(DebugLogger.Category.Playback, "Stop", $"state={State}, track={CurrentTrack?.Title}");
+        CancelAutoMixTransition("user stopped");
+        _hasPendingSeekTarget = false;
+        _latestVlcPosition = TimeSpan.Zero;
+        _lastCommittedSeekTarget = TimeSpan.Zero;
+        _resumePositionMs = -1;
+        _audioPlayer.Stop();
+        State = PlaybackState.Stopped;
+        Position = TimeSpan.Zero;
+        PositionFraction = 0;
+        PositionText = "0:00";
+        RemainingTimeText = Duration > TimeSpan.Zero ? FormatTime(Duration) : "0:00";
+        if (CurrentTrack?.RememberPlaybackPosition == true)
+        {
+            CurrentTrack.SavedPositionMs = 0;
+            MarkPlayStateDirty(CurrentTrack);
+        }
+        SaveQueueStateInBackground();
     }
 
     /// <summary>
@@ -2204,7 +2234,7 @@ public partial class PlayerViewModel : ViewModelBase
     /// </summary>
     public int MoveBlockInQueue(IReadOnlyCollection<int> indices, int insertIndex)
     {
-        var rows = indices.Where(i => i >= 0 && i < UpNext.Count).Distinct().Order().ToList();
+        var rows = indices.Where(i => i >= 0 && i < UpNext.Count).Distinct().OrderBy(x => x).ToList();
         if (rows.Count == 0) return -1;
         insertIndex = Math.Clamp(insertIndex, 0, UpNext.Count);
 
@@ -2868,6 +2898,8 @@ public partial class PlayerViewModel : ViewModelBase
             SignalPathQuality = dspActive ? "Lossy · Enhanced" : "Lossy";
             SignalPathColor = "#9CA3AF"; // gray
         }
+
+        OnPropertyChanged(nameof(IsStopButtonVisible));
     }
 
     partial void OnPositionFractionChanged(double value)
@@ -3801,7 +3833,7 @@ public partial class PlayerViewModel : ViewModelBase
             if (_errorSkippedTracks.Count != 0) _errorSkippedTracks.Clear();
             var latest = _latestVlcPosition;
 
-            if (_isSeeking) return; // don't update while user is dragging
+            if (State == PlaybackState.Stopped || _isSeeking) return; // don't update while stopped or user is dragging
 
             // Ignore stale position updates after seeking to prevent snap-back.
             // VLC needs time to flush old buffers and settle at the new position.

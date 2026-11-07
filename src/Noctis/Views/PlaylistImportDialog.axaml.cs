@@ -37,7 +37,7 @@ public partial class PlaylistImportDialog : Window
             {
                 var clipboard = GetTopLevel(this)?.Clipboard;
                 if (clipboard is null) return;
-                vm.OfferClipboardText(await clipboard.TryGetTextAsync());
+                vm.OfferClipboardText(await clipboard.GetTextAsync());
             }
             catch
             {

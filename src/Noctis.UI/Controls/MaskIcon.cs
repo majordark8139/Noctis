@@ -165,7 +165,7 @@ public sealed class MaskIcon : Control
         var alpha = new byte[n * n];
         using var copy = new WriteableBitmap(source.PixelSize, new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
         using var fb = copy.Lock();
-        source.CopyPixels(fb);
+        source.CopyPixels(new PixelRect(0, 0, n, n), fb.Address, fb.RowBytes * n, fb.RowBytes);
         var row = new byte[n * 4];
         for (var y = 0; y < n; y++)
         {

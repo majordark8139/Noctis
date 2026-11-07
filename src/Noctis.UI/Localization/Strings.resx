@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!--
     English UI strings — the fallback every other language falls back to.
@@ -294,6 +294,11 @@ Deezer and TIDAL: paste the link.</value></data>
   <data name="Settings.HowSolidTrackBox" xml:space="preserve"><value>How solid the box around the song info in the player bar is. 0% hides it.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.RepeatButton" xml:space="preserve"><value>Repeat</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.RepeatButtonNextToForward" xml:space="preserve"><value>A repeat button after Next: cycles Off → All → One.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButton" xml:space="preserve"><value>Stop button</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonHint" xml:space="preserve"><value>A stop button to halt playback and release Exclusive Mode.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonExclusiveOnly" xml:space="preserve"><value>Only in Exclusive Mode</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonExclusiveOnlyHint" xml:space="preserve"><value>Show the stop button only when Exclusive Mode is active to save player island space.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="PlaybackBar.StopTip" xml:space="preserve"><value>Stop</value><comment>Tooltip for Stop button</comment></data>
   <data name="Settings.FavoriteButton" xml:space="preserve"><value>Favorite</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.FavoriteButtonHeart" xml:space="preserve"><value>A heart on the right to favorite the playing song in one click.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.MiniPlayerButton" xml:space="preserve"><value>Mini player</value><comment>Text in SettingsView.axaml</comment></data>
@@ -454,7 +459,7 @@ Deezer and TIDAL: paste the link.</value></data>
   <data name="Settings.OutputDeviceDisconnected" xml:space="preserve"><value>not connected</value><comment>Suffix for a disconnected endpoint in the picker</comment></data>
   <data name="Settings.OutputDeviceMissingHint" xml:space="preserve"><value>The selected device is not connected right now. Playback uses the system default until it returns.</value><comment>Shown under Output Device when the pin is missing</comment></data>
   <data name="Settings.ExclusiveMode" xml:space="preserve"><value>Exclusive Mode</value><comment>Text in SettingsView.axaml</comment></data>
-  <data name="Settings.BitPerfectOutputBypasses" xml:space="preserve"><value>Bit-perfect output that bypasses the Windows mixer. Other apps go silent and transitions are off.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.BitPerfectOutputBypasses" xml:space="preserve"><value>Bit-perfect transport directly to your DAC, locking the hardware clock to the file's native sample rate (e.g. 88.2 kHz / 96 kHz). Direct 16-bit PCM stream bypasses Windows mixer and driver padding.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.AnalyzeTempoKey" xml:space="preserve"><value>Analyze Tempo &amp; Key</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.DetectBPMKeyAutoMix" xml:space="preserve"><value>Detect BPM and key for AutoMix and Track Radio.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.SaveAnalysisFileTags" xml:space="preserve"><value>Save analysis to file tags</value><comment>Text in SettingsView.axaml</comment></data>

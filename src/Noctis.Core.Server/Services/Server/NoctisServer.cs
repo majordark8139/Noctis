@@ -131,7 +131,7 @@ public sealed partial class NoctisServer : IAsyncDisposable
         // Production whatever the process environment says: in "Development" (a dev box's
         // ASPNETCORE_ENVIRONMENT) the host adds its developer exception page, which would hand
         // stack traces and source paths to whoever sends a request the pipeline chokes on.
-        var builder = WebApplication.CreateSlimBuilder(new WebApplicationOptions
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             ApplicationName = "Noctis",
             EnvironmentName = Microsoft.Extensions.Hosting.Environments.Production,
@@ -1044,7 +1044,7 @@ public sealed partial class NoctisServer : IAsyncDisposable
                         var id = StringOf(item["id"]);
                         if (string.IsNullOrWhiteSpace(kind) || string.IsNullOrWhiteSpace(id)) continue;
                         var payloadNode = item["payload"];
-                        var payload = payloadNode is null ? "{}" : payloadNode.GetValueKind() == System.Text.Json.JsonValueKind.String ? payloadNode.GetValue<string>() : payloadNode.ToJsonString();
+                        var payload = payloadNode is null ? "{}" : (payloadNode is JsonValue val && val.TryGetValue<string>(out var strVal)) ? strVal : payloadNode.ToJsonString();
                         // No offset in the stamp = UTC (never the server's local zone). The sync
                         // service clamps it and validates the payload.
                         var updated = DateTime.TryParse(StringOf(item["updatedUtc"]), System.Globalization.CultureInfo.InvariantCulture,
@@ -1163,7 +1163,7 @@ public sealed partial class NoctisServer : IAsyncDisposable
         if (sizeFeature is { IsReadOnly: false }) sizeFeature.MaxRequestBodySize = MaxSyncPushBytes;
         using var reader = new StreamReader(ctx.Request.Body, System.Text.Encoding.UTF8);
         string body;
-        try { body = await reader.ReadToEndAsync(ctx.RequestAborted).ConfigureAwait(false); }
+        try { body = await reader.ReadToEndAsync().ConfigureAwait(false); }
         catch (BadHttpRequestException)
         {
             throw new SubsonicException(SubsonicResponse.ErrGeneric, $"Sync push too large (at most {MaxSyncPushBytes / (1024 * 1024)} MB); send it in smaller batches.");

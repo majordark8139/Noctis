@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 
 namespace Noctis.Helpers;
 
@@ -47,10 +49,16 @@ public static class GlassMenuFlyout
     /// <paramref name="glassActive"/>, the stock native popup and plain presenter otherwise.
     /// Runs from Opening, after MenuFlyout has created the presenter and before the popup opens.
     /// </summary>
+    private static readonly PropertyInfo? PopupProperty =
+        typeof(PopupFlyoutBase).GetProperty("Popup", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
     public static void Apply(MenuFlyout flyout, bool glassActive)
     {
-        flyout.Popup.ShouldUseOverlayLayer = glassActive;
-        if (flyout.Popup.Child is Control presenter)
-            presenter.Classes.Set(GlassClass, glassActive);
+        if (PopupProperty?.GetValue(flyout) is Popup popup)
+        {
+            popup.ShouldUseOverlayLayer = glassActive;
+            if (popup.Child is Control presenter)
+                presenter.Classes.Set(GlassClass, glassActive);
+        }
     }
 }

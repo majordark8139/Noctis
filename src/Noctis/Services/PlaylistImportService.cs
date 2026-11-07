@@ -78,7 +78,7 @@ public sealed class PlaylistImportService : IPlaylistImportService
     private static string CountryCode()
     {
         var region = System.Globalization.RegionInfo.CurrentRegion.TwoLetterISORegionName;
-        return region.Length == 2 && region.All(char.IsAsciiLetterUpper) ? region : "US";
+        return region.Length == 2 && region.All(c => c >= 'A' && c <= 'Z') ? region : "US";
     }
 
     private async Task<string?> FetchAsync(string url, CancellationToken ct)

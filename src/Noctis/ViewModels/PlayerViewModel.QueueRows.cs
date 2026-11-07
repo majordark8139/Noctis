@@ -181,7 +181,7 @@ public partial class PlayerViewModel
         if (!KeepPlayedInQueue) return MoveBlockInQueue(rows, insertIndex);
 
         var current = QueueCurrentRow;
-        var block = rows.Where(r => r >= 0 && r < QueueRows.Count && r != current).Distinct().Order().ToList();
+        var block = rows.Where(r => r >= 0 && r < QueueRows.Count && r != current).Distinct().OrderBy(x => x).ToList();
         if (block.Count == 0) return -1;
         insertIndex = Math.Clamp(insertIndex, 0, QueueRows.Count);
         var landAt = insertIndex - block.Count(r => r < insertIndex);

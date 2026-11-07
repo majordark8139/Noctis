@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -30,6 +30,13 @@ internal class Program
             {
                 Thread.CurrentThread.SetApartmentState(ApartmentState.Unknown);
                 Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+                try
+                {
+                    System.Net.ServicePointManager.SecurityProtocol =
+                        System.Net.SecurityProtocolType.Tls12;
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback = (sender, certificate, chain, errors) => true;
+                }
+                catch { }
             }
 
             // Audio files passed on the command line ("Open with Noctis" /
@@ -250,6 +257,11 @@ internal class Program
             // room to spare; on integrated GPUs and the software path this cache is
             // host RAM, which is why it is not larger.
             .With(new SkiaOptions { MaxGpuResourceSizeBytes = 128L * 1024 * 1024 })
+            .With(new Win32PlatformOptions
+            {
+                RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Wgl, Win32RenderingMode.Software },
+                CompositionMode = new[] { Win32CompositionMode.RedirectionSurface }
+            })
             .LogToTrace();
 
         // LogToTrace installed its sink; wrap it so Avalonia's own warnings and
@@ -335,12 +347,23 @@ internal class Program
         // External integrations
         services.AddSingleton<HttpClient>(_ =>
         {
-            var http = new HttpClient
+            var handler = new SocketsHttpHandler
             {
-                Timeout = TimeSpan.FromSeconds(15)
+                SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                {
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12,
+                    RemoteCertificateValidationCallback = (sender, certificate, chain, errors) => true
+                },
+                AutomaticDecompression = System.Net.DecompressionMethods.All,
+                PooledConnectionLifetime = TimeSpan.FromMinutes(15)
             };
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("Noctis/1.0");
-            http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var http = new HttpClient(new DeezerHttpRedirectHandler(handler))
+            {
+                Timeout = TimeSpan.FromSeconds(25)
+            };
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("Noctis/1.6.7 (Windows NT 6.1; Win64; x64)");
+            http.DefaultRequestHeaders.Accept.ParseAdd("*/*");
             return http;
         });
         services.AddSingleton<IMediaSourceConnector, NavidromeMediaSourceConnector>();
@@ -568,5 +591,31 @@ internal class Program
 
         // Also surface it in the in-app session log (Settings → About → Developer Mode).
         try { Services.DebugLog.Write(source, ex); } catch { }
+    }
+}
+
+/// <summary>
+/// Deezer's HTTPS endpoint enforces AES-GCM cipher suites, which Windows 7's Schannel does not support.
+/// Since Deezer's API and CDN are fully functional over standard HTTP, rewrite HTTPS requests to HTTP.
+/// </summary>
+internal sealed class DeezerHttpRedirectHandler : DelegatingHandler
+{
+    public DeezerHttpRedirectHandler(HttpMessageHandler innerHandler) : base(innerHandler) { }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        if (request.RequestUri != null &&
+            request.RequestUri.Scheme.Equals("https", StringComparison.OrdinalIgnoreCase) &&
+            (request.RequestUri.Host.EndsWith("deezer.com", StringComparison.OrdinalIgnoreCase) ||
+             request.RequestUri.Host.EndsWith("dzcdn.net", StringComparison.OrdinalIgnoreCase)))
+        {
+            var builder = new UriBuilder(request.RequestUri)
+            {
+                Scheme = "http",
+                Port = -1
+            };
+            request.RequestUri = builder.Uri;
+        }
+        return base.SendAsync(request, cancellationToken);
     }
 }

@@ -16,7 +16,7 @@
         CanResize="True"
         helpers:UiScale.Exclude="True"
         Topmost="True"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         WindowStartupLocation="Manual">
 
@@ -2673,6 +2673,7 @@
                    Placement="BottomEdgeAlignedRight"
                    VerticalOffset="6"
                    IsLightDismissEnabled="False"
+                   ShouldUseOverlayLayer="False"
                    WindowManagerAddShadowHint="False">
                 <!-- Chrome follows the app's menus (Styles.axaml "Menus", the v2 card): the active
                      theme's sidebar background, radius 18, hairline MenuV2BorderBrush, padding 6,
@@ -2754,6 +2755,20 @@
                                 <controls:HeartIcon Size="16" OffBrush="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"
                                                     IsFavorite="{Binding Player.CurrentTrack.IsFavorite, FallbackValue=False}"/>
                                 <TextBlock Text="{loc:T MiniPlayer.FavoritesTip}" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <!-- Stop button (releases WASAPI Exclusive Mode and stops playback) -->
+                        <Button Classes="mini-menu-item" Command="{Binding Player.StopCommand}"
+                                AutomationProperties.Name="{loc:T PlaybackBar.StopTip}"
+                                Click="OnMenuItemClick"
+                                IsVisible="{Binding Player.IsStopButtonVisible}">
+                            <StackPanel Orientation="Horizontal" Spacing="11">
+                                <Viewbox Width="16" Height="16">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Data="{StaticResource StopIcon}"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="{loc:T PlaybackBar.StopTip}" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                         <!-- Stays in the list while lyrics are open: it is the only way back

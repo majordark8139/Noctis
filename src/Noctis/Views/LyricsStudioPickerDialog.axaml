@@ -7,7 +7,7 @@
         x:DataType="vm:LyricsStudioPickerViewModel"
         Title="{loc:T LyricsStudioPicker.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -154,7 +154,7 @@
             <TextBox x:Name="SearchBox"
                      Classes="pill-field"
                      Text="{Binding SearchText}"
-                     PlaceholderText="{loc:T LyricsStudioPicker.Search}"
+                     Watermark="{loc:T LyricsStudioPicker.Search}"
                      Padding="10,10,16,10">
                 <TextBox.InnerLeftContent>
                     <PathIcon Data="{StaticResource SearchIcon}" Width="13" Height="13" Opacity="0.5"

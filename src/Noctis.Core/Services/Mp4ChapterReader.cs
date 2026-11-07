@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Text;
+using Noctis.Helpers;
 using Noctis.Models;
 
 namespace Noctis.Services;

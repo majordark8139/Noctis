@@ -58,11 +58,11 @@ public sealed class MediaServerConnectResult
     {
         var message = ex switch
         {
-            HttpRequestException { HttpRequestError: HttpRequestError.NameResolutionError } =>
+            HttpRequestException { InnerException: System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.HostNotFound } } =>
                 "Server address not found. Check the URL (and that this machine can resolve it).",
-            HttpRequestException { HttpRequestError: HttpRequestError.ConnectionError } =>
+            HttpRequestException { InnerException: System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.ConnectionRefused } } =>
                 "The server refused the connection. Check the port and that the server is running.",
-            HttpRequestException { HttpRequestError: HttpRequestError.SecureConnectionError } =>
+            HttpRequestException { InnerException: System.Security.Authentication.AuthenticationException } =>
                 "Secure connection failed. The server may not support https, or its certificate isn't trusted.",
             OperationCanceledException =>
                 "The server didn't respond. Check the address and that the server is running.",

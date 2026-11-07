@@ -28,6 +28,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         WindowTransparencyLevel.AcrylicBlur,
         WindowTransparencyLevel.Mica,
         WindowTransparencyLevel.Blur,
+        WindowTransparencyLevel.Transparent,
         WindowTransparencyLevel.None,
     };
 
@@ -212,18 +213,25 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // there is never an open one to close here.
         if (!vm.Settings.MiniPlayerEnabled) return;
 
-        // macOS: Hide() below on a native-fullscreen window leaves its Space up and empty — a
-        // black screen with no menu bar or Dock, only the mini player floating on it. Leave
-        // fullscreen first and come back here once the exit transition is over; the main
-        // window re-enters fullscreen when the mini player closes (OnMiniPlayerClosed).
-        if (OperatingSystem.IsMacOS() && WindowState == WindowState.FullScreen)
+        // macOS & Windows: Hide() below on a fullscreen window causes platform issues:
+        // - On macOS, leaves an empty Space with no menu bar or Dock.
+        // - On Windows 7, Win32 leaves the window in borderless mode when re-shown, losing caption buttons.
+        // Leave fullscreen first, and restore fullscreen when the mini player closes (OnMiniPlayerClosed).
+        if (WindowState == WindowState.FullScreen)
         {
             _restoreFullScreenAfterMini = true;
-            LeaveMacFullScreenThen(() =>
+            if (OperatingSystem.IsMacOS())
             {
-                if (_miniPlayer == null) ToggleMiniPlayer();
-            });
-            return;
+                LeaveMacFullScreenThen(() =>
+                {
+                    if (_miniPlayer == null) ToggleMiniPlayer();
+                });
+                return;
+            }
+            else
+            {
+                WindowState = WindowState.Normal;
+            }
         }
         if (_leavingMacFullScreen) return; // a second press during the exit transition
 
@@ -375,6 +383,14 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         Win10DarkTitleBar.Apply(this);
         ActualThemeVariantChanged += (_, _) => Win10DarkTitleBar.Apply(this);
 
+        // Native Windows 7 Aero Glass Bridge: extend glass into client area on NT 6.1
+        Opened += (_, _) => Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
+        if (Win7AeroGlassBridge.IsWindows7OrLower)
+        {
+            Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
+            ActualThemeVariantChanged += (_, _) => Win7AeroGlassBridge.Apply(this, _liquidGlassActive);
+        }
+
         // Initialize the application once the window is fully loaded.
         //
         // The whole body is guarded. This is an async void handler running *inside*
@@ -459,8 +475,13 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
             // Every GlassPanel (sidebar, Settings sheet, island) drops back to its plain fill.
             AppGlass.Clear();
             QueueDrawerGlass.Apply(_queuePopupPanel, _queueGlass, glassActive: false);
+            if (Win7AeroGlassBridge.IsWindows7OrLower)
+                Win7AeroGlassBridge.Apply(this, false);
             return;
         }
+
+        if (Win7AeroGlassBridge.IsWindows7OrLower)
+            Win7AeroGlassBridge.Apply(this, true);
 
         // Resolve the active theme's surface colors from Application-level resources
         // (the window-scoped glass overlay never shadows those), so every theme —
@@ -468,41 +489,51 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         var main = ResolveThemeColor("AppMainBackground", Color.Parse("#252525"));
         var sidebar = ResolveThemeColor("AppSidebarBackground", Color.Parse("#141414"));
 
-        // One shared array: a new, equal array on every glass refresh is re-applied by
-        // Avalonia, and macOS drops a repeated level to Opaque (see MiniPlayerWindow).
-        TransparencyLevelHint = GlassTransparencyLevels;
-
-        if (acrylic != null)
+        if (!Win7AeroGlassBridge.IsWindows7OrLower)
         {
-            // Fresh material instance: assigning the Material property is guaranteed
-            // to invalidate, and the tint follows the active theme's surface color.
-            acrylic.Material = new ExperimentalAcrylicMaterial
+            // One shared array: a new, equal array on every glass refresh is re-applied by
+            // Avalonia, and macOS drops a repeated level to Opaque (see MiniPlayerWindow).
+            TransparencyLevelHint = GlassTransparencyLevels;
+
+            if (acrylic != null)
             {
-                BackgroundSource = AcrylicBackgroundSource.Digger,
-                TintColor = main,
-                TintOpacity = 0.65,
-                MaterialOpacity = 0.35,
-                FallbackColor = main,
-            };
-            acrylic.IsVisible = true;
-        }
+                // Fresh material instance: assigning the Material property is guaranteed
+                // to invalidate, and the tint follows the active theme's surface color.
+                acrylic.Material = new ExperimentalAcrylicMaterial
+                {
+                    BackgroundSource = AcrylicBackgroundSource.Digger,
+                    TintColor = main,
+                    TintOpacity = 0.65,
+                    MaterialOpacity = 0.35,
+                    FallbackColor = main,
+                };
+                acrylic.IsVisible = true;
+            }
 
-        // Translucent surface variants. The acrylic tint underneath carries most of
-        // the readability: in the content area the window, content-grid and page
-        // layers stack (≈73% net) — text always sits on a solid-enough frosted surface.
-        // AppSidebarBackground stays the theme's own brush: every right-click menu,
-        // flyout and tooltip paints with it, and at 55% they were see-through with no
-        // blur behind them (GitHub #81). The sidebar pill frosts via AppGlass instead.
-        _liquidGlassOverlay = new ResourceDictionary
+            // Translucent surface variants. The acrylic tint underneath carries most of
+            // the readability: in the content area the window, content-grid and page
+            // layers stack (≈73% net) — text always sits on a solid-enough frosted surface.
+            // AppSidebarBackground stays the theme's own brush: every right-click menu,
+            // flyout and tooltip paints with it, and at 55% they were see-through with no
+            // blur behind them (GitHub #81). The sidebar pill frosts via AppGlass instead.
+            _liquidGlassOverlay = new ResourceDictionary
+            {
+                ["AppMainBackground"] = new SolidColorBrush(main, 0.35),
+                // The window root paints AppWindowBackgroundBrush (a gradient on some themes);
+                // while glass is on it goes translucent with the content surface.
+                ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, 0.35),
+                // Accent action buttons deliberately keep their solid accent fill: frosting
+                // them (2026-08-06) read as washed-out, muddy buttons and was reverted 09-07.
+            };
+            Resources.MergedDictionaries.Add(_liquidGlassOverlay);
+        }
+        else
         {
-            ["AppMainBackground"] = new SolidColorBrush(main, 0.35),
-            // The window root paints AppWindowBackgroundBrush (a gradient on some themes);
-            // while glass is on it goes translucent with the content surface.
-            ["AppWindowBackgroundBrush"] = new SolidColorBrush(main, 0.35),
-            // Accent action buttons deliberately keep their solid accent fill: frosting
-            // them (2026-08-06) read as washed-out, muddy buttons and was reverted 09-07.
-        };
-        Resources.MergedDictionaries.Add(_liquidGlassOverlay);
+            // On Windows 7, keep the main window background solid to prevent desktop/Explorer bleed-through,
+            // while in-app GlassPanel hosts (sidebar, settings, playback bar) frost the app content beneath them.
+            ClearValue(TransparencyLevelHintProperty);
+            if (acrylic != null) acrylic.IsVisible = false;
+        }
 
         // In-app frost: GlassPanel hosts (sidebar, Settings sheet, playback island) blur the
         // app content beneath them. Dialog windows are left alone: an AcrylicBlur hint on a
@@ -654,7 +685,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
                 // never tracked later switches. The VM no-ops unless System is the
                 // active theme; Post guards against a non-UI-thread raise (SetTheme
                 // touches Application.Resources, which is UI-thread-only).
-                if (this.GetPlatformSettings() is { } platformSettings)
+                if (PlatformSettings is { } platformSettings)
                 {
                     _platformColorsChangedHandler = (_, _) =>
                         Dispatcher.UIThread.Post(() => vm.Settings.NotifySystemColorsChanged());
@@ -1027,7 +1058,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // an open-documents event instead (see FileActivation) — at a cold launch too,
         // once the run loop starts, which is before InitializeAsync has restored the queue.
         _detachFileActivation = Helpers.FileActivation.Subscribe(
-            Application.Current?.TryGetFeature<IActivatableLifetime>(),
+            (IActivatableLifetime?)Application.Current?.TryGetFeature(typeof(IActivatableLifetime)),
             files => Dispatcher.UIThread.Post(() =>
             {
                 ShowFromTray();
@@ -1040,7 +1071,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // had no way back but the status item. With the mini player up there is a visible
         // window, and AppKit's convention then is to just activate — leave it.
         _detachReopenActivation = Helpers.FileActivation.SubscribeReopen(
-            Application.Current?.TryGetFeature<IActivatableLifetime>(),
+            (IActivatableLifetime?)Application.Current?.TryGetFeature(typeof(IActivatableLifetime)),
             () => Dispatcher.UIThread.Post(() =>
             {
                 if (_miniPlayer == null)
@@ -1499,7 +1530,7 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
             _trayIcon = null;
         }
 
-        if (_platformColorsChangedHandler != null && this.GetPlatformSettings() is { } platformSettings)
+        if (_platformColorsChangedHandler != null && PlatformSettings is { } platformSettings)
             platformSettings.ColorValuesChanged -= _platformColorsChangedHandler;
 
         // Unsubscribe from all event handlers to prevent memory leak

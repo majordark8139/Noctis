@@ -1556,7 +1556,8 @@ public sealed class PluginHost
             try
             {
                 using var fs = File.OpenRead(zipPath);
-                sha = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(fs)).ToLowerInvariant();
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                sha = Convert.ToHexString(sha256.ComputeHash(fs)).ToLowerInvariant();
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { sha = ""; }
             if (sha.Length > 0 && string.Equals(sha, listing.Sha256, StringComparison.Ordinal))

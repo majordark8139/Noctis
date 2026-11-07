@@ -92,7 +92,7 @@ public partial class LyricsStudioPanel : UserControl
     }
 
     /// <summary>Typing in a row picks its line for the nudge bar (a word of it stays picked).</summary>
-    private void OnLineEditGotFocus(object? sender, FocusChangedEventArgs e)
+    private void OnLineEditGotFocus(object? sender, GotFocusEventArgs e)
     {
         if (sender is TextBox { DataContext: ReviewLine line } && DataContext is LyricsStudioViewModel vm) vm.SelectLine(line);
     }

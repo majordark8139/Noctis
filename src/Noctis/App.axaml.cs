@@ -1,9 +1,11 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Noctis.Controls;
 using Noctis.Services;
 using Noctis.Views;
@@ -37,6 +39,27 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        // On Windows, route popups/tooltips to the overlay layer (eliminates Windows 7 Win32 square corners
+        // around rounded cards and tooltips). Only MiniPlayer's large "MorePopup" menu uses a native popup
+        // so it can float beyond the miniplayer's compact bounds without clipping.
+        Popup.IsOpenProperty.Changed.AddClassHandler<Popup>((popup, e) =>
+        {
+            if (e.NewValue is true && OperatingSystem.IsWindows())
+            {
+                var isMiniPlayerMenu = string.Equals(popup.Name, "MorePopup", StringComparison.Ordinal) ||
+                                       (popup.Child is Border b && string.Equals(b.Name, "MenuCard", StringComparison.Ordinal));
+                if (isMiniPlayerMenu)
+                {
+                    popup.ShouldUseOverlayLayer = false;
+                }
+                else
+                {
+                    popup.ShouldUseOverlayLayer = true;
+                }
+            }
+        });
+
         // Interface Size (GitHub #145): every window gets its scale host from here on.
         Noctis.Helpers.UiScale.Install();
 
@@ -96,7 +119,7 @@ public partial class App : Application
                     && source != focused
                     && !Avalonia.VisualTree.VisualExtensions.IsVisualAncestorOf(focused, source))
                 {
-                    top.FocusManager.Focus(null); // 12: Focus(null) clears (ClearFocus removed)
+                    top.FocusManager?.ClearFocus();
                 }
             },
             Avalonia.Interactivity.RoutingStrategies.Tunnel);

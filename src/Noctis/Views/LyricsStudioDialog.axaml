@@ -8,7 +8,7 @@
         x:DataType="vm:LyricsStudioViewModel"
         Title="{loc:T LyricsStudio.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"

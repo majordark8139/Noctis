@@ -296,6 +296,7 @@ public partial class PlaybackBarView : UserControl
             e.PropertyName == nameof(PlayerViewModel.IslandShowShuffle) ||
             e.PropertyName == nameof(PlayerViewModel.IslandShowEqualizer) ||
             e.PropertyName == nameof(PlayerViewModel.IslandShowRepeat) ||
+            e.PropertyName == nameof(PlayerViewModel.IsStopButtonVisible) ||
             e.PropertyName == nameof(PlayerViewModel.IslandShowFavorite) ||
             e.PropertyName == nameof(PlayerViewModel.IslandShowMiniPlayer) ||
             e.PropertyName == nameof(PlayerViewModel.IslandShowTime))
@@ -1552,6 +1553,7 @@ public partial class PlaybackBarView : UserControl
                         + (vm.IslandShowShuffle ? 1 : 0)
                         + (vm.IslandShowEqualizer ? 1 : 0)
                         + (vm.IslandShowRepeat ? 1 : 0)
+                        + (vm.IsStopButtonVisible ? 1 : 0)
                         + (vm.IslandShowFavorite ? 1 : 0)
                         + (vm.IslandShowMiniPlayer ? 1 : 0);
             return buttons * ExtraTransportButtonWidth + (vm.IslandShowTime ? IslandTimeWidth : 0);

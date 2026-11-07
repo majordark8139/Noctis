@@ -8,7 +8,7 @@
         x:DataType="vm:ArtistInfoSearchViewModel"
         Title="{loc:T ArtistInfoSearch.Title}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         TransparencyLevelHint="Transparent"
         Background="Transparent"
         ShowInTaskbar="False"
@@ -94,7 +94,7 @@
         <!-- Query row (Enter searches too). -->
         <Grid Grid.Row="1" ColumnDefinitions="*,10,Auto" Margin="28,18,28,14">
             <TextBox Grid.Column="0" Classes="pill-field" Text="{Binding Query}"
-                     PlaceholderText="{loc:T LyricsSearch.ArtistWatermark}"
+                     Watermark="{loc:T LyricsSearch.ArtistWatermark}"
                      AutomationProperties.Name="{loc:T LyricsSearch.ArtistWatermark}" />
             <Button Grid.Column="2"
                     Classes="pill-secondary ai-search"
@@ -154,13 +154,13 @@
                 BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
                 BorderThickness="0,1,0,0">
             <Grid ColumnDefinitions="*,Auto,Auto">
-                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
-                            Margin="0,0,16,0">
-                    <ProgressBar IsIndeterminate="True" Width="48" MinWidth="0" Height="4" CornerRadius="2"
-                                 IsVisible="{Binding IsSearching}" VerticalAlignment="Center" />
-                    <TextBlock Classes="ai-status" Text="{Binding StatusText}"
+                <Grid Grid.Column="0" ColumnDefinitions="Auto,*" VerticalAlignment="Center"
+                      Margin="0,0,16,0">
+                    <ProgressBar Grid.Column="0" IsIndeterminate="True" Width="48" MinWidth="0" Height="4" CornerRadius="2"
+                                 IsVisible="{Binding IsSearching}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                    <TextBlock Grid.Column="1" Classes="ai-status" Text="{Binding StatusText}"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </StackPanel>
+                </Grid>
                 <Button Grid.Column="1"
                         Classes="pill-secondary"
                         Content="{loc:T Metadata.Cancel}"

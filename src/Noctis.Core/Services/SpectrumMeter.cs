@@ -54,7 +54,7 @@ public sealed class SpectrumMeter
     /// <summary>Clock injection for tests; null uses the wall clock.</summary>
     public SpectrumMeter(Func<double>? nowMs)
     {
-        _nowMs = nowMs ?? (static () => Stopwatch.GetElapsedTime(0).TotalMilliseconds);
+        _nowMs = nowMs ?? ((Func<double>)(static () => Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency));
     }
 
     /// <summary>Milliseconds on the meter's own clock.</summary>

@@ -14,17 +14,17 @@ namespace Noctis.Services;
 /// </summary>
 public static partial class LogRedaction
 {
-    [GeneratedRegex("""(https?://[^\s"'<>]+?)\?[^\s"'<>]*""", RegexOptions.IgnoreCase)]
-    private static partial Regex UrlQueryRegex();
+    private static readonly Regex _urlQueryRegex = new("""(https?://[^\s"'<>]+?)\?[^\s"'<>]*""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex UrlQueryRegex() => _urlQueryRegex;
 
-    [GeneratedRegex("""\b(api_key|apikey|access_token|token)=("[^"]*"|[^&\s"'<>]+)""", RegexOptions.IgnoreCase)]
-    private static partial Regex BareSecretRegex();
+    private static readonly Regex _bareSecretRegex = new("""\b(api_key|apikey|access_token|token)=("[^"]*"|[^&\s"'<>]+)""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex BareSecretRegex() => _bareSecretRegex;
 
     // Subsonic auth parameters (u, t/s token+salt, p=enc:<hex password>). LibVLC
     // also logs stream URLs without a scheme (demux "location='host/rest/...?u=..'",
     // the https access's "GET /rest/stream.view?..."), which UrlQueryRegex never sees.
-    [GeneratedRegex("""([?&](?:u|t|s|p)=)[^&\s"'<>]+""", RegexOptions.IgnoreCase)]
-    private static partial Regex SubsonicAuthParamRegex();
+    private static readonly Regex _subsonicAuthParamRegex = new("""([?&](?:u|t|s|p)=)[^&\s"'<>]+""", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex SubsonicAuthParamRegex() => _subsonicAuthParamRegex;
 
     /// <summary>Returns <paramref name="message"/> with URL query strings and
     /// token-style key=value pairs replaced by <c>[redacted]</c>. Text without

@@ -7,7 +7,7 @@
         x:DataType="vm:CommandPaletteViewModel"
         Title="{loc:T CommandPalette.CommandPalette}"
         CanResize="False"
-        WindowDecorations="None"
+        SystemDecorations="None"
         Background="Transparent"
         TransparencyLevelHint="Transparent"
         ShowInTaskbar="False">

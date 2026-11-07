@@ -930,7 +930,7 @@ public sealed class GaplessSink : IDisposable
             // clears the GC). "gcs=a/b/c" is CollectionCount(0/1/2) over the gap, and
             // CollectionCount(n) counts every GC of generation n or higher. Plain counter
             // reads, cheap at the ~10ms cadence.
-            var gcPause = GC.GetTotalPauseDuration();
+            var gcPause = TimeSpan.Zero;
             int gen0 = GC.CollectionCount(0), gen1 = GC.CollectionCount(1), gen2 = GC.CollectionCount(2);
             var gapMs = (now - last) * 1000.0 / Stopwatch.Frequency;
             if (last != 0 && gapMs > _thresholdMs)
@@ -946,7 +946,7 @@ public sealed class GaplessSink : IDisposable
                            $"audible={_audible()}";
                 ThreadPool.QueueUserWorkItem(static m =>
                 {
-                    try { DebugLogger.Warn(DebugLogger.Category.Playback, "GaplessEngine.RenderStall", m); }
+                    try { DebugLogger.Warn(DebugLogger.Category.Playback, "GaplessEngine.RenderStall", (string)m!); }
                     catch { /* diagnostic only */ }
                 }, meta, preferLocal: false);
             }

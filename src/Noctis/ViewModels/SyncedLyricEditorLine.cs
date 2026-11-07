@@ -157,7 +157,7 @@ public partial class SyncedLyricEditorLine : ObservableObject
                 // "1:23.4567" produced 4567 ms and silently turned a 1:23.45 line into
                 // 1:27.567 rather than rejecting or truncating the extra digits.
                 foreach (var c in frac)
-                    if (!char.IsAsciiDigit(c)) return null;
+                    if (c < '0' || c > '9') return null;
 
                 var millisDigits = frac.Length <= 3 ? frac.PadRight(3, '0') : frac[..3];
                 if (!int.TryParse(millisDigits, out ms) || ms < 0) return null;

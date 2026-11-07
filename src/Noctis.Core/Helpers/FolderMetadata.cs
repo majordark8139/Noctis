@@ -12,11 +12,11 @@ namespace Noctis.Helpers;
 /// </summary>
 public static partial class FolderMetadata
 {
-    [GeneratedRegex(@"^(?:(\d{1,2})-)?(\d{1,2})[ .\-_]+(.+)$")]
-    private static partial Regex TrackPrefixRegex();
+    private static readonly Regex _trackPrefixRegex = new(@"^(?:(\d{1,2})-)?(\d{1,2})[ .\-_]+(.+)$", RegexOptions.Compiled);
+    private static Regex TrackPrefixRegex() => _trackPrefixRegex;
 
-    [GeneratedRegex(@"^(cd|disc|disk)\s*\d+$", RegexOptions.IgnoreCase)]
-    private static partial Regex DiscFolderRegex();
+    private static readonly Regex _discFolderRegex = new(@"^(cd|disc|disk)\s*\d+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex DiscFolderRegex() => _discFolderRegex;
 
     /// <summary>
     /// Derives (artist, album) from the file's folder structure: album = parent
