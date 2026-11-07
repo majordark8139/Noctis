@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-win7:
@@ -42,3 +42,10 @@ jobs:
           name: Noctis-v1.6.7-Win7-x64
           path: ./Noctis-v1.6.7-Win7-x64.zip
           retention-days: 30
+
+      - name: Upload asset to GitHub Release v1.6.7
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload v1.6.7 ./Noctis-v1.6.7-Win7-x64.zip --clobber

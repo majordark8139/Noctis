@@ -8,7 +8,7 @@
 
 [![Discord](https://img.shields.io/badge/DISCORD-JOIN%20SERVER-5865F2?style=for-the-badge&logo=discord&logoColor=white&labelColor=4F4F4F)](https://discord.gg/BNCDZQUVx7) &nbsp; [![Downloads](https://img.shields.io/github/downloads/heartached/Noctis/total?color=E74856&style=for-the-badge&cacheSeconds=600)](https://github.com/heartached/Noctis/releases) &nbsp; [![Support](https://img.shields.io/badge/SUPPORT-BUY%20ME%20A%20COFFEE-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black&labelColor=4F4F4F)](https://buymeacoffee.com/heartached)
 
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue.svg?style=for-the-badge)]()
+[![Platform](https://img.shields.io/badge/Platform-Windows%207%2F10%2F11%20%7C%20macOS%20%7C%20Linux-blue.svg?style=for-the-badge)]()
 
 </div>
 
@@ -36,7 +36,24 @@
 
 ## Install
 
-**Windows**, via a package manager:
+### Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
+
+For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package:
+- 📦 **[Noctis-v1.6.7-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.7/Noctis-v1.6.7-Win7-x64.zip)** (from [Release v1.6.7](https://github.com/majordark8139/Noctis/releases/tag/v1.6.7))
+
+**Windows 7 Edition Highlights:**
+- **Zero prerequisites**: Fully self-contained .NET 6 package — extracts and runs with no runtime or frameworks to install.
+- **Bundled LibVLC 3.0.21 x64**: Native offline audio decoding without system codec dependencies.
+- **SkiaSharp Per-Pixel Transparency**: Full Aero Glass integration with zero black box or clipping artifacts.
+- **Bit-Perfect Audio**: WASAPI Exclusive Mode transport directly to your DAC with auto sample-rate locking.
+- **Dedicated Stop Button**: Halts playback and immediately frees exclusive audio hardware locks for other apps.
+- **High-DPI Scaling**: Expanded UI scaling range down to 50% for customized display resolutions.
+
+---
+
+### Windows 10 & 11
+
+Via a package manager:
 
 ```powershell
 # winget
@@ -50,7 +67,9 @@ scoop install noctis
 Or download the installer or portable zip from the
 [latest release](https://github.com/heartached/Noctis/releases/latest).
 
-**macOS and Linux**: download the `.dmg` or AppImage from the
+### macOS & Linux
+
+Download the `.dmg` or AppImage from the
 [latest release](https://github.com/heartached/Noctis/releases/latest).
 Both ship with everything they need, so there is nothing else to install.
 
@@ -74,7 +93,9 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 ### Sound
 
 - [x] Plays FLAC, ALAC, WAV, AIFF, APE, WavPack, MP3, AAC, OGG, Opus, WMA, M4A and M4B audiobooks
-- [x] Bit-perfect exclusive output on Windows
+- [x] Bit-perfect WASAPI Exclusive Mode audio transport directly to DAC hardware with auto sample-rate matching (44.1 kHz to 192 kHz)
+- [x] Dedicated hardware Stop button that resets playback and immediately frees exclusive DAC locks for other applications
+- [x] Configurable Stop button display toggle in Player Island settings (with optional Exclusive-Mode-only display)
 - [x] Parametric EQ with presets, and a saved preset per track if you want one
 - [x] Gapless playback, crossfade and AutoMix transitions
 - [x] ReplayGain and Sound Check volume leveling
@@ -125,7 +146,9 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 - [x] Ambient blurred backdrops on the lyrics page
 - [x] Themes and accent colors, plus a custom theme editor
 - [x] Liquid Glass translucent window mode
-- [x] Resizable mini player with search, queue, volume and karaoke lyrics
+- [x] Windows 7 SP1 native Aero Glass title bar with per-pixel Skia transparency
+- [x] Extended interface scaling options from 50% to 150% in 10% steps
+- [x] Resizable mini player with search, queue, volume and karaoke lyrics (with zero-wedge rounded popups on Win7)
 - [x] Kawarp warped background, album pages tinted from the cover, accent color that can follow the album art
 - [x] Settings organized into 13 searchable pages
 
@@ -174,9 +197,9 @@ cd Noctis
 dotnet run --project src/Noctis/Noctis.csproj
 ```
 
-**Requirements:** .NET 10 SDK
+**Requirements:** .NET 10 SDK (or .NET 6 SDK for Windows 7 SP1 builds)
 
-Supported platforms: Windows 10/11 (x64), macOS 12+ (Intel and Apple Silicon), Linux (x64 and ARM64).
+Supported platforms: Windows 7 SP1 / 10 / 11 (x64), macOS 12+ (Intel and Apple Silicon), Linux (x64 and ARM64).
 
 ### Native dependency: libvlc
 
