@@ -294,6 +294,11 @@ Deezer and TIDAL: paste the link.</value></data>
   <data name="Settings.HowSolidTrackBox" xml:space="preserve"><value>How solid the box around the song info in the player bar is. 0% hides it.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.RepeatButton" xml:space="preserve"><value>Repeat</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.RepeatButtonNextToForward" xml:space="preserve"><value>A repeat button after Next: cycles Off → All → One.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButton" xml:space="preserve"><value>Stop button</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonHint" xml:space="preserve"><value>A stop button to halt playback and release Exclusive Mode.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonExclusiveOnly" xml:space="preserve"><value>Only in Exclusive Mode</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="Settings.StopButtonExclusiveOnlyHint" xml:space="preserve"><value>Show the stop button only when Exclusive Mode is active to save player island space.</value><comment>Text in SettingsView.axaml</comment></data>
+  <data name="PlaybackBar.StopTip" xml:space="preserve"><value>Stop</value><comment>Tooltip for Stop button</comment></data>
   <data name="Settings.FavoriteButton" xml:space="preserve"><value>Favorite</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.FavoriteButtonHeart" xml:space="preserve"><value>A heart on the right to favorite the playing song in one click.</value><comment>Text in SettingsView.axaml</comment></data>
   <data name="Settings.MiniPlayerButton" xml:space="preserve"><value>Mini player</value><comment>Text in SettingsView.axaml</comment></data>

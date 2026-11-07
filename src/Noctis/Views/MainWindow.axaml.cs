@@ -213,18 +213,25 @@ public partial class MainWindow : Window, IPageKeyOverlayHost
         // there is never an open one to close here.
         if (!vm.Settings.MiniPlayerEnabled) return;
 
-        // macOS: Hide() below on a native-fullscreen window leaves its Space up and empty — a
-        // black screen with no menu bar or Dock, only the mini player floating on it. Leave
-        // fullscreen first and come back here once the exit transition is over; the main
-        // window re-enters fullscreen when the mini player closes (OnMiniPlayerClosed).
-        if (OperatingSystem.IsMacOS() && WindowState == WindowState.FullScreen)
+        // macOS & Windows: Hide() below on a fullscreen window causes platform issues:
+        // - On macOS, leaves an empty Space with no menu bar or Dock.
+        // - On Windows 7, Win32 leaves the window in borderless mode when re-shown, losing caption buttons.
+        // Leave fullscreen first, and restore fullscreen when the mini player closes (OnMiniPlayerClosed).
+        if (WindowState == WindowState.FullScreen)
         {
             _restoreFullScreenAfterMini = true;
-            LeaveMacFullScreenThen(() =>
+            if (OperatingSystem.IsMacOS())
             {
-                if (_miniPlayer == null) ToggleMiniPlayer();
-            });
-            return;
+                LeaveMacFullScreenThen(() =>
+                {
+                    if (_miniPlayer == null) ToggleMiniPlayer();
+                });
+                return;
+            }
+            else
+            {
+                WindowState = WindowState.Normal;
+            }
         }
         if (_leavingMacFullScreen) return; // a second press during the exit transition
 

@@ -434,6 +434,13 @@ public partial class PlayerViewModel : ViewModelBase
     /// <summary>Repeat after Next, and the favorite heart on the right: opt-in since the
     /// track-box layout, so the stock bar is transport + box + lyrics/queue/volume.</summary>
     [ObservableProperty] private bool _islandShowRepeat;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStopButtonVisible))]
+    private bool _islandShowStopButton;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStopButtonVisible))]
+    private bool _islandStopButtonExclusiveOnly;
+    public bool IsStopButtonVisible => IslandShowStopButton && (!IslandStopButtonExclusiveOnly || _audioPlayer.ExclusiveModeActive || (_settings?.ExclusiveAudioEnabled ?? false));
     [ObservableProperty] private bool _islandShowFavorite;
     /// <summary>GitHub #80: the mini player button in the right cluster (Settings → Player).</summary>
     [ObservableProperty] private bool _islandShowMiniPlayer = true;
@@ -859,6 +866,18 @@ public partial class PlayerViewModel : ViewModelBase
                 }
                 break;
         }
+    }
+
+    [RelayCommand]
+    public void Stop()
+    {
+        DebugLogger.Info(DebugLogger.Category.Playback, "Stop", $"state={State}, track={CurrentTrack?.Title}");
+        CancelAutoMixTransition("user stopped");
+        _audioPlayer.Stop();
+        State = PlaybackState.Stopped;
+        Position = TimeSpan.Zero;
+        PositionFraction = 0;
+        SaveQueueStateInBackground();
     }
 
     /// <summary>
@@ -2868,6 +2887,8 @@ public partial class PlayerViewModel : ViewModelBase
             SignalPathQuality = dspActive ? "Lossy · Enhanced" : "Lossy";
             SignalPathColor = "#9CA3AF"; // gray
         }
+
+        OnPropertyChanged(nameof(IsStopButtonVisible));
     }
 
     partial void OnPositionFractionChanged(double value)

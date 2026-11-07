@@ -159,9 +159,30 @@ public partial class MiniPlayerWindow : Window
         {
             if (MorePopup.IsOpen) LogMenu("Window.Activated", MenuState());
         };
+        // Windows 7: eliminate white corner wedges around MenuCard in native popup window
+        MenuCard.SizeChanged += (_, e) =>
+        {
+            if (Win7AeroGlassBridge.IsWindows7OrLower && e.NewSize.Width > 0 && e.NewSize.Height > 0)
+            {
+                if (TopLevel.GetTopLevel(MenuCard) is { } topLevel)
+                {
+                    Win7AeroGlassBridge.ApplyPopup(topLevel, e.NewSize.Width, e.NewSize.Height, 18);
+                }
+            }
+        };
         // GitHub #79 ("…" often shows nothing, Windows 11, not reproducible here): the
         // popup's own lifecycle, next to the open/close requests logged below.
-        MorePopup.Opened += (_, _) => LogMenu("Popup.Opened", MenuState());
+        MorePopup.Opened += (_, _) =>
+        {
+            LogMenu("Popup.Opened", MenuState());
+            if (Win7AeroGlassBridge.IsWindows7OrLower && MenuCard.Bounds.Width > 0 && MenuCard.Bounds.Height > 0)
+            {
+                if (TopLevel.GetTopLevel(MenuCard) is { } topLevel)
+                {
+                    Win7AeroGlassBridge.ApplyPopup(topLevel, MenuCard.Bounds.Width, MenuCard.Bounds.Height, 18);
+                }
+            }
+        };
         MorePopup.Closed += (_, _) => LogMenu("Popup.Closed", MenuState());
 
         // Space toggles play/pause app-wide; a focused Button would otherwise eat the

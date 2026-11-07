@@ -1,4 +1,4 @@
-﻿<UserControl xmlns="https://github.com/avaloniaui"
+<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:Noctis.Localization"
              xmlns:plugins="using:Noctis.Services.Plugins"
@@ -3295,6 +3295,30 @@
                     </StackPanel>
                     <!-- Header + picker share a spacing-free panel so the 12px gap folds with the body
                          (see the Crossfade block). -->
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0" Spacing="2">
+                                <TextBlock Text="{loc:T Settings.StopButton}" FontSize="13" FontWeight="SemiBold"/>
+                                <TextBlock Text="{loc:T Settings.StopButtonHint}" FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                            </StackPanel>
+                            <controls:LottieToggle Grid.Column="1"
+                                                  AutomationProperties.Name="{loc:T Settings.StopButton}"
+                                                  IsChecked="{Binding PlaybackBarShowStopButton}"
+                                                  VerticalAlignment="Center"/>
+                        </Grid>
+                        <controls:CollapsibleContent IsOpen="{Binding PlaybackBarShowStopButton}" Lift="10" Motion="Glide">
+                            <Grid ColumnDefinitions="*,Auto" Margin="16,10,0,0">
+                                <StackPanel Grid.Column="0" Spacing="2">
+                                    <TextBlock Text="{loc:T Settings.StopButtonExclusiveOnly}" FontSize="13" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{loc:T Settings.StopButtonExclusiveOnlyHint}" FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <controls:LottieToggle Grid.Column="1"
+                                                      AutomationProperties.Name="{loc:T Settings.StopButtonExclusiveOnly}"
+                                                      IsChecked="{Binding PlaybackBarStopButtonExclusiveOnly}"
+                                                      VerticalAlignment="Center"/>
+                            </Grid>
+                        </controls:CollapsibleContent>
+                    </StackPanel>
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Spacing="2">
                             <TextBlock Text="{loc:T Settings.RepeatButton}" FontSize="13" FontWeight="SemiBold"/>

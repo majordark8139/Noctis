@@ -796,6 +796,12 @@ public class AppSettings : IJsonOnDeserializing
     /// reference — transport, track box, lyrics / queue / volume.</summary>
     public bool PlaybackBarShowRepeat { get; set; }
 
+    /// <summary>Dedicated Stop button to halt playback and release Exclusive Mode.</summary>
+    public bool PlaybackBarShowStopButton { get; set; }
+
+    /// <summary>When true, Stop button is only shown when Exclusive Mode is active/enabled.</summary>
+    public bool PlaybackBarStopButtonExclusiveOnly { get; set; }
+
     public bool PlaybackBarShowFavorite { get; set; }
 
     /// <summary>GitHub #80: the mini player button in the island's right cluster. On by

@@ -1115,6 +1115,8 @@ public partial class SettingsViewModel : ViewModelBase
     /// <summary>GitHub #94: EQ on/off button on the island.</summary>
     [ObservableProperty] private bool _playbackBarShowEqualizer;
     [ObservableProperty] private bool _playbackBarShowRepeat;
+    [ObservableProperty] private bool _playbackBarShowStopButton;
+    [ObservableProperty] private bool _playbackBarStopButtonExclusiveOnly;
     [ObservableProperty] private bool _playbackBarShowFavorite;
     [ObservableProperty] private bool _playbackBarShowMiniPlayer = true;
     [ObservableProperty] private bool _playbackBarShowIdlePill;
@@ -3327,6 +3329,8 @@ public partial class SettingsViewModel : ViewModelBase
             PlaybackBarShowShuffle = _settings.PlaybackBarShowShuffle;
             PlaybackBarShowEqualizer = _settings.PlaybackBarShowEqualizer;
             PlaybackBarShowRepeat = _settings.PlaybackBarShowRepeat;
+            PlaybackBarShowStopButton = _settings.PlaybackBarShowStopButton;
+            PlaybackBarStopButtonExclusiveOnly = _settings.PlaybackBarStopButtonExclusiveOnly;
             PlaybackBarShowFavorite = _settings.PlaybackBarShowFavorite;
             PlaybackBarShowMiniPlayer = _settings.PlaybackBarShowMiniPlayer;
             PlaybackBarShowIdlePill = _settings.PlaybackBarShowIdlePill;
@@ -3855,6 +3859,8 @@ public partial class SettingsViewModel : ViewModelBase
         _settings.PlaybackBarShowShuffle = PlaybackBarShowShuffle;
         _settings.PlaybackBarShowEqualizer = PlaybackBarShowEqualizer;
         _settings.PlaybackBarShowRepeat = PlaybackBarShowRepeat;
+        _settings.PlaybackBarShowStopButton = PlaybackBarShowStopButton;
+        _settings.PlaybackBarStopButtonExclusiveOnly = PlaybackBarStopButtonExclusiveOnly;
         _settings.PlaybackBarShowFavorite = PlaybackBarShowFavorite;
         _settings.PlaybackBarShowMiniPlayer = PlaybackBarShowMiniPlayer;
         _settings.PlaybackBarShowIdlePill = PlaybackBarShowIdlePill;
@@ -4209,6 +4215,8 @@ public partial class SettingsViewModel : ViewModelBase
         _player.IslandShowShuffle = PlaybackBarShowShuffle;
         _player.IslandShowEqualizer = PlaybackBarShowEqualizer;
         _player.IslandShowRepeat = PlaybackBarShowRepeat;
+        _player.IslandShowStopButton = PlaybackBarShowStopButton;
+        _player.IslandStopButtonExclusiveOnly = PlaybackBarStopButtonExclusiveOnly;
         _player.IslandShowFavorite = PlaybackBarShowFavorite;
         _player.IslandShowMiniPlayer = PlaybackBarShowMiniPlayer && MiniPlayerEnabled;
         _player.IslandShowTime = PlaybackBarShowTime;
@@ -5591,6 +5599,18 @@ public partial class SettingsViewModel : ViewModelBase
     }
 
     partial void OnPlaybackBarShowRepeatChanged(bool value)
+    {
+        ApplyPlayerSettings();
+        if (_settingsLoaded) _ = SaveAsync();
+    }
+
+    partial void OnPlaybackBarShowStopButtonChanged(bool value)
+    {
+        ApplyPlayerSettings();
+        if (_settingsLoaded) _ = SaveAsync();
+    }
+
+    partial void OnPlaybackBarStopButtonExclusiveOnlyChanged(bool value)
     {
         ApplyPlayerSettings();
         if (_settingsLoaded) _ = SaveAsync();
@@ -7766,6 +7786,8 @@ public partial class SettingsViewModel : ViewModelBase
             PlaybackBarShowShuffle = defaultSettings.PlaybackBarShowShuffle;
             PlaybackBarShowEqualizer = defaultSettings.PlaybackBarShowEqualizer;
             PlaybackBarShowRepeat = defaultSettings.PlaybackBarShowRepeat;
+            PlaybackBarShowStopButton = defaultSettings.PlaybackBarShowStopButton;
+            PlaybackBarStopButtonExclusiveOnly = defaultSettings.PlaybackBarStopButtonExclusiveOnly;
             PlaybackBarShowFavorite = defaultSettings.PlaybackBarShowFavorite;
             PlaybackBarShowMiniPlayer = defaultSettings.PlaybackBarShowMiniPlayer;
             PlaybackBarShowIdlePill = defaultSettings.PlaybackBarShowIdlePill;

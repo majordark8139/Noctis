@@ -2757,6 +2757,20 @@
                                 <TextBlock Text="{loc:T MiniPlayer.FavoritesTip}" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
+                        <!-- Stop button (releases WASAPI Exclusive Mode and stops playback) -->
+                        <Button Classes="mini-menu-item" Command="{Binding Player.StopCommand}"
+                                AutomationProperties.Name="{loc:T PlaybackBar.StopTip}"
+                                Click="OnMenuItemClick"
+                                IsVisible="{Binding Player.IsStopButtonVisible}">
+                            <StackPanel Orientation="Horizontal" Spacing="11">
+                                <Viewbox Width="16" Height="16">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Fill="{DynamicResource SystemControlForegroundBaseHighBrush}" Data="{StaticResource StopIcon}"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="{loc:T PlaybackBar.StopTip}" Foreground="{DynamicResource SystemControlForegroundBaseHighBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                         <!-- Stays in the list while lyrics are open: it is the only way back
                              out of the split view, so hiding it stranded the user there. -->
                         <Button Classes="mini-menu-item" Command="{Binding ToggleLyricsFormCommand}"
