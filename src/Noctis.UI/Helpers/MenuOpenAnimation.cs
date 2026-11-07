@@ -626,6 +626,9 @@ public static class MenuOpenAnimation
         timer.Start();
     }
 
+    private static readonly System.Reflection.PropertyInfo? PopupProperty =
+        typeof(PopupFlyoutBase).GetProperty("Popup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+
     /// <summary>
     /// The flyout's own card. This used to be the most recently attached presenter of any
     /// flyout: with two flyouts open, closing the first ran its close motion on the second
@@ -634,7 +637,7 @@ public static class MenuOpenAnimation
     /// </summary>
     private static bool TryGetPresenter(MenuFlyout flyout, out MenuFlyoutPresenter presenter)
     {
-        if (flyout.Popup.Child is MenuFlyoutPresenter own && TopLevel.GetTopLevel(own) is not null)
+        if (PopupProperty?.GetValue(flyout) is Popup { Child: MenuFlyoutPresenter own } && TopLevel.GetTopLevel(own) is not null)
         {
             presenter = own;
             return true;

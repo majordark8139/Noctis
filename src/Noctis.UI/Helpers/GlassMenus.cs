@@ -168,13 +168,7 @@ public static class GlassMenus
         card.Classes.Set(GlassClass, on);
         card.Classes.Set(OverlayClass, overlay);
 
-        // A tooltip's popup binds its overlay flag to its owner's ToolTip.ShouldUseOverlayLayer
-        // on every open (ToolTip.Open), so the owner carries it.
-        var isTip = card is ToolTip;
-        Control? holder = isTip ? popup.Parent as Control : popup;
-        if (holder is null) return;
-        var property = isTip ? ToolTip.ShouldUseOverlayLayerProperty : Popup.ShouldUseOverlayLayerProperty;
-        SetForcedOverlay(holder, property, overlay);
+        SetForcedOverlay(popup, Popup.ShouldUseOverlayLayerProperty, overlay);
     }
 
     /// <summary>Sets <paramref name="property"/> on <paramref name="holder"/> while
