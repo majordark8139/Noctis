@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 using Noctis.Controls;
 using Noctis.Services;
 using Noctis.Views;
@@ -37,6 +39,28 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        // On Windows, route all popups/tooltips in normal windows to the overlay layer (eliminates
+        // Windows 7 Win32 square corners around rounded cards and tooltips), while allowing
+        // MiniPlayerWindow to use native popups so its menu can float beyond its compact bounds.
+        Popup.IsOpenProperty.Changed.AddClassHandler<Popup>((popup, e) =>
+        {
+            if (e.NewValue is true && OperatingSystem.IsWindows())
+            {
+                var win = popup.VisualRoot as Window
+                          ?? popup.FindAncestorOfType<Window>()
+                          ?? (popup.PlacementTarget is Visual v ? (v.VisualRoot as Window ?? v.FindAncestorOfType<Window>()) : null);
+                if (win is Views.MiniPlayerWindow)
+                {
+                    popup.ShouldUseOverlayLayer = false;
+                }
+                else
+                {
+                    popup.ShouldUseOverlayLayer = true;
+                }
+            }
+        });
+
         // Interface Size (GitHub #145): every window gets its scale host from here on.
         Noctis.Helpers.UiScale.Install();
 

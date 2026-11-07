@@ -260,8 +260,7 @@ internal class Program
             .With(new Win32PlatformOptions
             {
                 RenderingMode = new[] { Win32RenderingMode.AngleEgl, Win32RenderingMode.Wgl, Win32RenderingMode.Software },
-                CompositionMode = new[] { Win32CompositionMode.RedirectionSurface },
-                OverlayPopups = true
+                CompositionMode = new[] { Win32CompositionMode.RedirectionSurface }
             })
             .LogToTrace();
 

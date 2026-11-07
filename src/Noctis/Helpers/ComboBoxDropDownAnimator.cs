@@ -59,6 +59,8 @@ public static class ComboBoxDropDownAnimator
         public bool Plain;
         /// <summary>The popup body whose Opacity is watched to know when the fade has landed.</summary>
         public Control? WatchedBody;
+        /// <summary>Timestamp when the drop-down was opened, used to allow initial layout settling.</summary>
+        public long OpenedTick;
         /// <summary>Our light-dismiss: owner top level + the handlers on it, while open.</summary>
         public TopLevel? Owner;
         public EventHandler<PointerPressedEventArgs>? PressHandler;
@@ -142,11 +144,20 @@ public static class ComboBoxDropDownAnimator
         // detached from the box (09-19, Settings > Language). So the list closes the moment
         // the box moves in the owner. Plain, not faded: a fading ghost over the wrong card
         // is the glitch, and a fade already in flight is cut short for the same reason.
+        state.OpenedTick = Environment.TickCount64;
         state.Anchor = box.TranslatePoint(default, owner) ?? default;
         state.LayoutHandler = (_, _) =>
         {
             if (!box.IsDropDownOpen) return;
             if (box.TranslatePoint(default, owner) is not { } now) return;
+
+            // Allow initial BringIntoView / layout scroll adjustments to settle while opening (~350ms)
+            if (Environment.TickCount64 - state.OpenedTick < 350)
+            {
+                state.Anchor = now;
+                return;
+            }
+
             if (Math.Abs(now.X - state.Anchor.X) < 0.5 && Math.Abs(now.Y - state.Anchor.Y) < 0.5) return;
             if (!state.ClosingHeld) state.Plain = true;
             box.SetCurrentValue(ComboBox.IsDropDownOpenProperty, false);

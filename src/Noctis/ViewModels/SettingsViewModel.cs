@@ -2535,8 +2535,11 @@ public partial class SettingsViewModel : ViewModelBase
         var devices = AudioOutputDeviceCatalog.Enumerate();
         foreach (var d in devices)
             _outputDeviceNames[d.Id] = d.Name;
-        OutputDeviceOptions = BuildOutputDeviceOptions(devices, selectedId,
+        var newOptions = BuildOutputDeviceOptions(devices, selectedId,
             _outputDeviceNames.GetValueOrDefault(selectedId));
+        if (OutputDeviceOptions != null && OutputDeviceOptions.SequenceEqual(newOptions))
+            return;
+        OutputDeviceOptions = newOptions;
         _selectedOutputDeviceId = selectedId;
         OnPropertyChanged(nameof(SelectedOutputDevice));
         OnPropertyChanged(nameof(OutputDeviceMissing));
