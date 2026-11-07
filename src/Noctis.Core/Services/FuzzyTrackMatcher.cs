@@ -312,11 +312,13 @@ public static class FuzzyTrackMatcher
             p = PlaylistImportParser.DecodeM3uEntry(p);
         }
         p = p.Replace('\\', '/');
-        if (p.Length >= 2 && char.IsAsciiLetter(p[0]) && p[1] == ':') p = p[2..];
+        if (p.Length >= 2 && IsAsciiLetter(p[0]) && p[1] == ':') p = p[2..];
         return p.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(s => s != "." && s != "..")
             .ToArray();
     }
+
+    private static bool IsAsciiLetter(char c) => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
 
     private static string SafeUnescape(string s)
     {

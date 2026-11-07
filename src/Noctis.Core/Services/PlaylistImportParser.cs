@@ -159,7 +159,7 @@ public static class PlaylistImportParser
             {
                 var local = new Uri(line).LocalPath;
                 // "file:///C:/Music/a.mp3" read on Linux/Android comes out as "/C:/Music/a.mp3".
-                return local.Length > 3 && local[0] == '/' && char.IsAsciiLetter(local[1]) && local[2] == ':' ? local[1..] : local;
+                return local.Length > 3 && local[0] == '/' && IsAsciiLetter(local[1]) && local[2] == ':' ? local[1..] : local;
             }
             catch (UriFormatException)
             {
@@ -182,9 +182,12 @@ public static class PlaylistImportParser
         return line;
     }
 
+    private static bool IsAsciiLetter(char c) => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z');
+    private static bool IsAsciiDigit(char c) => c is >= '0' and <= '9';
+
     /// <summary>"C:/…" or "C:\…": a Windows drive path, on any OS.</summary>
     internal static bool IsDriveRooted(string path) =>
-        path.Length >= 3 && char.IsAsciiLetter(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\');
+        path.Length >= 3 && IsAsciiLetter(path[0]) && path[1] == ':' && (path[2] == '/' || path[2] == '\\');
 
     private static TimeSpan? ParseExtinfSeconds(string line, int comma)
     {
@@ -219,8 +222,8 @@ public static class PlaylistImportParser
         var stem = Path.GetFileNameWithoutExtension(path.Replace('\\', '/').Split('/')[^1]);
         var i = 0;
         // Digits, allowing one disc-track dash between them ("1-03").
-        while (i < stem.Length && (char.IsAsciiDigit(stem[i])
-               || (i > 0 && stem[i] == '-' && i + 1 < stem.Length && char.IsAsciiDigit(stem[i + 1]))))
+        while (i < stem.Length && (IsAsciiDigit(stem[i])
+               || (i > 0 && stem[i] == '-' && i + 1 < stem.Length && IsAsciiDigit(stem[i + 1]))))
             i++;
         if (i is > 0 and <= 4 && i < stem.Length)
         {
