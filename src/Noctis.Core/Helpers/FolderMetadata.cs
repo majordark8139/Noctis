@@ -18,6 +18,11 @@ public static partial class FolderMetadata
     private static readonly Regex _discFolderRegex = new(@"^(cd|disc|disk)\s*\d+$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static Regex DiscFolderRegex() => _discFolderRegex;
 
+    /// <summary>True for a disc subfolder name ("CD1", "Disc 2", "disk 3") that belongs to
+    /// the album folder above it.</summary>
+    public static bool IsDiscFolderName(string? name) =>
+        !string.IsNullOrWhiteSpace(name) && DiscFolderRegex().IsMatch(name.Trim());
+
     /// <summary>
     /// Derives (artist, album) from the file's folder structure: album = parent
     /// folder, artist = grandparent. Disc subfolders ("CD1", "Disc 2") are

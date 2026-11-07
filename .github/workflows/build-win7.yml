@@ -3,6 +3,7 @@ name: Build Windows 7 SP1 x64
 on:
   push:
     branches:
+      - feat/win7-lossless-v1.6.8
       - feat/win7-lossless-v1.6.7
       - main
   workflow_dispatch:
@@ -34,18 +35,23 @@ jobs:
 
       - name: Archive Windows 7 release package
         shell: pwsh
-        run: Compress-Archive -Path ./dist/noctis-win7/* -DestinationPath ./Noctis-v1.6.7-Win7-x64.zip -Force
+        run: |
+          $ver = ([xml](Get-Content src/Noctis/Noctis.csproj)).Project.PropertyGroup.Version
+          Write-Host "Packaging version $ver"
+          Compress-Archive -Path ./dist/noctis-win7/* -DestinationPath ./Noctis-v$ver-Win7-x64.zip -Force
+          echo "APP_VERSION=$ver" >> $env:GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Noctis-v1.6.7-Win7-x64
-          path: ./Noctis-v1.6.7-Win7-x64.zip
+          name: Noctis-v${{ env.APP_VERSION }}-Win7-x64
+          path: ./Noctis-v${{ env.APP_VERSION }}-Win7-x64.zip
           retention-days: 30
 
-      - name: Upload asset to GitHub Release v1.6.7
+      - name: Upload asset to GitHub Release
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload v1.6.7 ./Noctis-v1.6.7-Win7-x64.zip --clobber
+          $ver = $env:APP_VERSION
+          gh release upload "v$ver" "./Noctis-v$ver-Win7-x64.zip" --clobber
