@@ -899,7 +899,6 @@
                                           Opacity="{Binding #GlassTipRoot.Fade}"
                                           Content="{TemplateBinding Content}"
                                           ContentTemplate="{TemplateBinding ContentTemplate}"
-                                          TextBlock.LetterSpacing="{TemplateBinding LetterSpacing}"
                                           TextBlock.TextWrapping="Wrap" />
                     </controls:GlassPanel>
                 </controls:GlassMenuBackdrop>

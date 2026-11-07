@@ -50,6 +50,7 @@ jobs:
 
       - name: Upload asset to GitHub Release
         shell: pwsh
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
