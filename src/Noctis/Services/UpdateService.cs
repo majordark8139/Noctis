@@ -566,9 +566,12 @@ public sealed class UpdateService
         // Random per-run filename: a fixed predictable path invited a same-user
         // verify-then-launch swap (TOCTOU) on the elevated installer.
         var runTag = Guid.NewGuid().ToString("N")[..8];
+        var isZip = (assetName?.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) == true) ||
+                    (url.Contains(".zip", StringComparison.OrdinalIgnoreCase));
         var tempPath = destinationPath ?? Path.Combine(InstallerDirectory,
             OperatingSystem.IsMacOS() ? $"Noctis-Update-{runTag}.dmg"
             : OperatingSystem.IsLinux() ? $"Noctis-Update-{runTag}{LinuxInstallerExtension()}"
+            : isZip ? $"Noctis-Update-{runTag}.zip"
             : $"Noctis-Update-{runTag}-Setup.exe");
 
         try
@@ -652,7 +655,7 @@ public sealed class UpdateService
 
         if (OperatingSystem.IsWindows())
         {
-            if (installerPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            if (installerPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) || IsZipFile(installerPath))
             {
                 return LaunchWindowsZipSelfUpdate(installerPath);
             }
@@ -795,6 +798,21 @@ public sealed class UpdateService
         return false;
     }
 
+    private static bool IsZipFile(string path)
+    {
+        try
+        {
+            using var fs = File.OpenRead(path);
+            var header = new byte[4];
+            return fs.Read(header, 0, 4) == 4 &&
+                   header[0] == 0x50 && header[1] == 0x4B && header[2] == 0x03 && header[3] == 0x04;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static bool LaunchWindowsZipSelfUpdate(string zipPath)
     {
         try
@@ -802,6 +820,18 @@ public sealed class UpdateService
             var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             var exePath = Process.GetCurrentProcess().MainModule?.FileName ?? Path.Combine(appDir, "Noctis.exe");
             var pid = Environment.ProcessId;
+
+            // Ensure the file has a .zip extension for Shell.Application
+            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                var renamedZip = Path.ChangeExtension(zipPath, ".zip");
+                try
+                {
+                    File.Move(zipPath, renamedZip, overwrite: true);
+                    zipPath = renamedZip;
+                }
+                catch { }
+            }
 
             var tempDir = Path.GetTempPath();
             var runTag = Guid.NewGuid().ToString("N")[..8];
@@ -816,20 +846,29 @@ public sealed class UpdateService
                 "Set target = shell.NameSpace(WScript.Arguments(1))\r\n" +
                 "If Not (zip Is Nothing) And Not (target Is Nothing) Then\r\n" +
                 "    target.CopyHere zip.Items, 16\r\n" +
+                "    Dim prevCount, stableCount\r\n" +
+                "    prevCount = -1 : stableCount = 0\r\n" +
+                "    Do\r\n" +
+                "        WScript.Sleep 500\r\n" +
+                "        Dim curCount : curCount = target.Items.Count\r\n" +
+                "        If curCount = prevCount Then stableCount = stableCount + 1 Else stableCount = 0 : prevCount = curCount\r\n" +
+                "    Loop While stableCount < 3\r\n" +
+                "    WScript.Sleep 1000\r\n" +
                 "End If\r\n";
 
             File.WriteAllText(vbsPath, vbsCode);
 
-            // Batch script to wait for Noctis to exit, extract update, relaunch, and clean up
+            // Batch script to wait for Noctis to exit (testing file lock on exe), extract update, relaunch, and clean up
             var batCode =
                 "@echo off\r\n" +
                 ":wait_exit\r\n" +
-                $"tasklist /FI \"PID eq {pid}\" 2>NUL | find \"{pid}\" >NUL\r\n" +
-                "if not errorlevel 1 (\r\n" +
-                "    ping -n 2 127.0.0.1 >NUL\r\n" +
-                "    goto wait_exit\r\n" +
+                $"2>NUL (>>\"{exePath}\" call ) && (goto :unlocked) || (ping -n 2 127.0.0.1 >NUL & goto :wait_exit)\r\n" +
+                ":unlocked\r\n" +
+                $"ping -n 2 127.0.0.1 >NUL\r\n" +
+                $"powershell -NoProfile -Command \"Expand-Archive -Path '{zipPath}' -DestinationPath '{appDir}' -Force\" 2>NUL\r\n" +
+                "if errorlevel 1 (\r\n" +
+                $"    cscript //nologo \"{vbsPath}\" \"{zipPath}\" \"{appDir}\"\r\n" +
                 ")\r\n" +
-                $"cscript //nologo \"{vbsPath}\" \"{zipPath}\" \"{appDir}\"\r\n" +
                 $"start \"\" \"{exePath}\"\r\n" +
                 $"del \"{zipPath}\" 2>NUL\r\n" +
                 $"del \"{vbsPath}\" 2>NUL\r\n" +
