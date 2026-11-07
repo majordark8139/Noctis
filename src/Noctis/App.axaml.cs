@@ -47,10 +47,10 @@ public partial class App : Application
         {
             if (e.NewValue is true && OperatingSystem.IsWindows())
             {
-                var win = popup.VisualRoot as Window
+                var win = (popup.PlacementTarget != null ? TopLevel.GetTopLevel(popup.PlacementTarget) : TopLevel.GetTopLevel(popup)) as Window
                           ?? popup.FindAncestorOfType<Window>()
-                          ?? (popup.PlacementTarget is Visual v ? (v.VisualRoot as Window ?? v.FindAncestorOfType<Window>()) : null);
-                if (win is Views.MiniPlayerWindow)
+                          ?? (popup.PlacementTarget is Visual v ? v.FindAncestorOfType<Window>() : null);
+                if (win is MiniPlayerWindow)
                 {
                     popup.ShouldUseOverlayLayer = false;
                 }
