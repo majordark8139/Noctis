@@ -49,10 +49,11 @@
 ### 🪟 Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
 
 For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
-- 📦 **[Noctis-v1.6.7-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.7/Noctis-v1.6.7-Win7-x64.zip)** (from [Release v1.6.7](https://github.com/majordark8139/Noctis/releases/tag/v1.6.7))
+- 📦 **[Noctis-v1.6.8-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.8/Noctis-v1.6.8-Win7-x64.zip)** (from [Release v1.6.8](https://github.com/majordark8139/Noctis/releases/tag/v1.6.8))
 
 **Windows 7 Edition Highlights:**
 - **Zero prerequisites**: Fully self-contained .NET 6 package — simply extract and run `Noctis.exe` with no .NET runtime or desktop frameworks required.
+- **Native DSD Playback & Batch Conversion**: Hardware playback of `.dsf` and `.dff` files via `DsdPcmDecoder` synchronized directly into WASAPI Exclusive mode.
 - **Bundled LibVLC 3.0.21 x64**: Native offline audio decoding with full format coverage (FLAC, ALAC, WAV, APE, Opus, AAC, MP3) without system codec dependencies.
 - **SkiaSharp Per-Pixel Transparency**: Full Aero Glass integration with zero black box, white wedge, or window clipping artifacts.
 - **Bit-Perfect Audio**: Direct WASAPI Exclusive Mode transport directly to your DAC with auto sample-rate matching (44.1 kHz up to 192 kHz).
