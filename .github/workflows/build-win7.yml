@@ -39,13 +39,17 @@ jobs:
           $ver = ([xml](Get-Content src/Noctis/Noctis.csproj)).Project.PropertyGroup.Version
           Write-Host "Packaging version $ver"
           Compress-Archive -Path ./dist/noctis-win7/* -DestinationPath ./Noctis-v$ver-Win7-x64.zip -Force
+          $hash = (Get-FileHash -Algorithm SHA256 ./Noctis-v$ver-Win7-x64.zip).Hash.ToLowerInvariant()
+          "$hash  Noctis-v$ver-Win7-x64.zip`n" | Out-File -FilePath ./SHA256SUMS -Encoding ascii
           echo "APP_VERSION=$ver" >> $env:GITHUB_ENV
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: Noctis-v${{ env.APP_VERSION }}-Win7-x64
-          path: ./Noctis-v${{ env.APP_VERSION }}-Win7-x64.zip
+          path: |
+            ./Noctis-v${{ env.APP_VERSION }}-Win7-x64.zip
+            ./SHA256SUMS
           retention-days: 30
 
       - name: Upload asset to GitHub Release
@@ -55,4 +59,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ver = $env:APP_VERSION
-          gh release upload "v$ver" "./Noctis-v$ver-Win7-x64.zip" --clobber
+          gh release upload "v$ver" "./Noctis-v$ver-Win7-x64.zip" "./SHA256SUMS" --clobber
