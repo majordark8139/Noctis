@@ -40,17 +40,16 @@ public partial class App : Application
     {
         AvaloniaXamlLoader.Load(this);
 
-        // On Windows, route all popups/tooltips in normal windows to the overlay layer (eliminates
-        // Windows 7 Win32 square corners around rounded cards and tooltips), while allowing
-        // MiniPlayerWindow to use native popups so its menu can float beyond its compact bounds.
+        // On Windows, route popups/tooltips to the overlay layer (eliminates Windows 7 Win32 square corners
+        // around rounded cards and tooltips). Only MiniPlayer's large "MorePopup" menu uses a native popup
+        // so it can float beyond the miniplayer's compact bounds without clipping.
         Popup.IsOpenProperty.Changed.AddClassHandler<Popup>((popup, e) =>
         {
             if (e.NewValue is true && OperatingSystem.IsWindows())
             {
-                var win = (popup.PlacementTarget != null ? TopLevel.GetTopLevel(popup.PlacementTarget) : TopLevel.GetTopLevel(popup)) as Window
-                          ?? popup.FindAncestorOfType<Window>()
-                          ?? (popup.PlacementTarget is Visual v ? v.FindAncestorOfType<Window>() : null);
-                if (win is MiniPlayerWindow)
+                var isMiniPlayerMenu = string.Equals(popup.Name, "MorePopup", StringComparison.Ordinal) ||
+                                       (popup.Child is Border b && string.Equals(b.Name, "MenuCard", StringComparison.Ordinal));
+                if (isMiniPlayerMenu)
                 {
                     popup.ShouldUseOverlayLayer = false;
                 }

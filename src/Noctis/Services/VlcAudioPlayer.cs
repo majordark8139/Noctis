@@ -5495,6 +5495,7 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
         _positionTimer.Stop();
         _isPaused = false;
         _transitionInFlight = false;
+        try { PositionChanged?.Invoke(this, TimeSpan.Zero); } catch { }
 
         ThreadPool.QueueUserWorkItem(_ =>
         {
@@ -5512,8 +5513,22 @@ public class VlcAudioPlayer : IAudioPlayer, IOpenFileHolder
                 var oldMedia = _currentMedia;
                 _currentMedia = null;
                 oldMedia?.Dispose();
+
+                // Explicitly dispose and clear WASAPI exclusive and wasapi output sinks
+                // so the audio hardware / DAC lock is immediately released for other applications.
+                lock (_exclusiveSinkLock)
+                {
+                    try { _exclusiveOut?.Dispose(); } catch { }
+                    _exclusiveOut = null;
+                }
+                try { _wasapiOut?.Dispose(); } catch { }
+                _wasapiOut = null;
+                _keepAlive?.SetSuspended(false);
+
                 DebugLogger.Info(DebugLogger.Category.Playback, "VLC.Stop",
                     $"session={CurrentSessionId}, engine={_gaplessEngine}");
+
+                try { OutputModeChanged?.Invoke(this, OutputDescription); } catch { }
             }
             finally
             {

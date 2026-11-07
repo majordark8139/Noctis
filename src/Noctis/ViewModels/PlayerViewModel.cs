@@ -873,10 +873,21 @@ public partial class PlayerViewModel : ViewModelBase
     {
         DebugLogger.Info(DebugLogger.Category.Playback, "Stop", $"state={State}, track={CurrentTrack?.Title}");
         CancelAutoMixTransition("user stopped");
+        _hasPendingSeekTarget = false;
+        _latestVlcPosition = TimeSpan.Zero;
+        _lastCommittedSeekTarget = TimeSpan.Zero;
+        _resumePositionMs = -1;
         _audioPlayer.Stop();
         State = PlaybackState.Stopped;
         Position = TimeSpan.Zero;
         PositionFraction = 0;
+        PositionText = "0:00";
+        RemainingTimeText = Duration > TimeSpan.Zero ? FormatTime(Duration) : "0:00";
+        if (CurrentTrack?.RememberPlaybackPosition == true)
+        {
+            CurrentTrack.SavedPositionMs = 0;
+            MarkPlayStateDirty(CurrentTrack);
+        }
         SaveQueueStateInBackground();
     }
 
@@ -3822,7 +3833,7 @@ public partial class PlayerViewModel : ViewModelBase
             if (_errorSkippedTracks.Count != 0) _errorSkippedTracks.Clear();
             var latest = _latestVlcPosition;
 
-            if (_isSeeking) return; // don't update while user is dragging
+            if (State == PlaybackState.Stopped || _isSeeking) return; // don't update while stopped or user is dragging
 
             // Ignore stale position updates after seeking to prevent snap-back.
             // VLC needs time to flush old buffers and settle at the new position.
