@@ -49,10 +49,11 @@
 ### 🪟 Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
 
 For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
-- 📦 **[Noctis-v1.6.8-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.8/Noctis-v1.6.8-Win7-x64.zip)** (from [Release v1.6.8](https://github.com/majordark8139/Noctis/releases/tag/v1.6.8))
+- 📦 **[Noctis-v1.6.9-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.9/Noctis-v1.6.9-Win7-x64.zip)** (from [Release v1.6.9](https://github.com/majordark8139/Noctis/releases/tag/v1.6.9))
 
 **Windows 7 Edition Highlights:**
 - **Zero prerequisites**: Fully self-contained .NET 6 package — simply extract and run `Noctis.exe` with no .NET runtime or desktop frameworks required.
+- **Multichannel (5.1 & 7.1) Surround Sound**: Native surround sound routing directly to your AV receiver or surround soundcard over WASAPI.
 - **Native DSD Playback & Batch Conversion**: Hardware playback of `.dsf` and `.dff` files via `DsdPcmDecoder` synchronized directly into WASAPI Exclusive mode.
 - **Bundled LibVLC 3.0.21 x64**: Native offline audio decoding with full format coverage (FLAC, ALAC, WAV, APE, Opus, AAC, MP3) without system codec dependencies.
 - **SkiaSharp Per-Pixel Transparency**: Full Aero Glass integration with zero black box, white wedge, or window clipping artifacts.
@@ -71,9 +72,12 @@ Via package manager from upstream:
 winget install heartached.Noctis
 
 # Scoop (add the bucket once, then install)
-scoop bucket add noctis https://github.com/heartached/scoop-bucket
-scoop install noctis
+scoop bucket add extras
+scoop install extras/noctis
 ```
+
+The Scoop package keeps its library and settings in Scoop's `persist\noctis\data`
+folder, so it starts with its own library rather than an installer copy's.
 
 Or download the installer or portable zip from upstream
 [heartached/Noctis latest release](https://github.com/heartached/Noctis/releases/latest).
@@ -144,7 +148,7 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 
 - [x] Word-by-word karaoke lyrics, Apple Music style
 - [x] Reads plain text, LRC, word-level LRC, TTML and Lyricsfile sidecars
-- [x] Auto-fetched from LRCLIB and NetEase, cached offline
+- [x] Auto-fetched from LRCLIB, NetEase, Musixmatch, lrc.red, Unison, Kugou and YouTube Music, cached offline
 - [x] Lyrics panel you can keep open next to any page
 - [x] Written By credits for the songwriters and producers
 - [x] Built-in lyrics editor with `.lrc` export
@@ -183,8 +187,7 @@ Options and client notes are in [docs/SELF-HOSTING.md](docs/SELF-HOSTING.md).
 
 ### Languages
 
-- [x] English, Arabic, French, Japanese, Korean, Russian, Spanish, Turkish, Simplified Chinese and Traditional Chinese
-- [x] Switch language from Settings without a restart
+- [x] English, Arabic, French, German, Japanese, Korean, Russian, Spanish, Turkish, Simplified Chinese and Traditional Chinese
 
 <p align="center">
   <img src="docs/images/discord.png" width="380" alt="Discord Rich Presence" />
@@ -199,6 +202,8 @@ Noctis can be extended three ways, from safest to most powerful:
 - **Content packs**: themes, lyrics presets and languages as plain JSON, with no code. They keep working in restricted mode. See [Content packs](docs/PLUGINS.md#content-packs).
 - **Local API**: HTTP + JSON on 127.0.0.1 for Stream Deck buttons, OBS overlays and scripts in any language. Nothing runs inside Noctis. See the [Local API reference](docs/LOCAL-API.md).
 - **Plugins**: .NET libraries built on the `Noctis.Plugins.Abstractions` SDK, with a `plugin.json` manifest and permissions, installed from a .zip. See the [plugin guide](docs/PLUGINS.md).
+
+Official plugins install in one click from Settings › Plugins: A-B Loop, Add from YouTube, Album Roulette, Album Town, Chords, Lyric Motion, Mixxx and True Shuffle.
 
 Community plugins start off (restricted mode) and ask for approval before they run. Sample plugins, a sample content pack and Local API examples are in [`samples/`](samples/).
 
@@ -231,8 +236,9 @@ Supported platforms: Windows 10/11 (x64), macOS 12+ (Intel and Apple Silicon), L
 
 ### Native dependency: libvlc
 
-The released downloads already carry everything they need. This only matters if
-you are building from source.
+The released `.dmg`, AppImage and Windows downloads already carry everything they
+need, and the `.deb` pulls libvlc in as a dependency. This matters if you are building
+from source or running the Linux `.tar.gz`.
 
 - **Windows:** bundled automatically via NuGet, nothing to install.
 - **macOS:** install [VLC](https://www.videolan.org/vlc/), which Noctis loads from
@@ -241,12 +247,12 @@ you are building from source.
   ```bash
   brew install --cask vlc
   ```
-- **Linux:** install via your package manager. The `-dev` package provides the
-  unversioned `libvlc.so` symlink that the .NET loader looks for. The released
+- **Linux:** install via your package manager. Noctis loads the runtime library
+  (`libvlc.so.5`), so the `-dev` package is not needed (it works too). The released
   AppImage bundles libvlc and its plugins, so it runs without this.
   ```bash
   # Debian/Ubuntu
-  sudo apt install libvlc-dev
+  sudo apt install libvlc5 vlc-plugin-base
   # Fedora
   sudo dnf install vlc-devel
   # Arch
@@ -265,7 +271,13 @@ xattr -dr com.apple.quarantine Noctis.app   # remove Gatekeeper quarantine flag
 open Noctis.app
 ```
 
-**Linux**, using the AppImage:
+**Linux**, using the `.deb` (Debian/Ubuntu-based distros). Noctis then appears in your
+app menu and can be pinned to the dock; to update, install the next release's `.deb` the same way:
+```bash
+sudo apt install ./Noctis-linux-amd64.deb
+```
+
+Or the AppImage (needs glibc 2.35 or newer: Ubuntu 22.04, Debian 12 or later):
 ```bash
 chmod +x Noctis-x86_64.AppImage
 ./Noctis-x86_64.AppImage
