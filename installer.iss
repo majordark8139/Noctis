@@ -8,6 +8,10 @@
 #define MyAppExeName "Noctis.exe"
 #define MyAppURL "https://github.com/heartached/Noctis"
 
+#ifndef SourceDir
+#define SourceDir "dist\noctis-win7"
+#endif
+
 [Setup]
 AppId={{E8A3B5F1-7C2D-4A9E-B6F0-1D3E5A7C9B2F}
 AppName={#MyAppName}
@@ -16,7 +20,10 @@ AppVerName={#MyAppName}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
-DefaultDirName={autopf}\{#MyAppName}
+DefaultDirName={code:GetDefaultDir}
+CloseApplications=yes
+CloseApplicationsFilter=Noctis.exe
+RestartApplications=no
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=installer-output
@@ -102,7 +109,7 @@ Root: HKA; Subkey: "Software\Classes\.m4b\OpenWithProgids"; ValueType: none; Val
 ; A wildcard cannot drift from what CI actually produces.
 ; *.pdb is excluded: it ships full source paths and internal symbol names to end users,
 ; and nothing in the app consumes it.
-Source: "publish\win-x64\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#SourceDir}\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [UninstallDelete]
 ; libvlc's plugins cache, written by the app on first start (Services/VlcPluginCache.cs).
@@ -118,6 +125,39 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+// Helper to detect running Noctis process directory so silent in-app updates upgrade in-place
+function GetRunningNoctisDir(): String;
+var
+  WbemLocator, WbemServices, WbemObjectSet, WbemObject: Variant;
+  ProcPath: String;
+begin
+  Result := '';
+  try
+    WbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
+    WbemServices := WbemLocator.ConnectServer('.', 'root\CIMV2');
+    WbemObjectSet := WbemServices.ExecQuery('Select ExecutablePath from Win32_Process where Name = ''Noctis.exe''');
+    if not VarIsNull(WbemObjectSet) and (WbemObjectSet.Count > 0) then
+    begin
+      WbemObject := WbemObjectSet.ItemIndex(0);
+      ProcPath := String(WbemObject.ExecutablePath);
+      if FileExists(ProcPath) then
+        Result := ExtractFileDir(ProcPath);
+    end;
+  except
+  end;
+end;
+
+function GetDefaultDir(Param: String): String;
+var
+  RunningDir: String;
+begin
+  RunningDir := GetRunningNoctisDir();
+  if RunningDir <> '' then
+    Result := RunningDir
+  else
+    Result := ExpandConstant('{autopf}\{#MyAppName}');
+end;
+
 // On silent installs (the in-app updater path), Inno skips every [Run] entry
 // flagged `postinstall skipifsilent`, so the app would never relaunch after
 // "Install & Restart". Launch the new exe ourselves at ssDone in that case.

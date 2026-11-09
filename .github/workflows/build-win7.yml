@@ -3,6 +3,7 @@ name: Build Windows 7 SP1 x64
 on:
   push:
     branches:
+      - feat/win7-lossless-v1.6.9
       - feat/win7-lossless-v1.6.8
       - feat/win7-lossless-v1.6.7
       - main
@@ -39,8 +40,22 @@ jobs:
           $ver = ([xml](Get-Content src/Noctis/Noctis.csproj)).Project.PropertyGroup.Version
           Write-Host "Packaging version $ver"
           Compress-Archive -Path ./dist/noctis-win7/* -DestinationPath ./Noctis-v$ver-Win7-x64.zip -Force
-          $hash = (Get-FileHash -Algorithm SHA256 ./Noctis-v$ver-Win7-x64.zip).Hash.ToLowerInvariant()
-          "$hash  Noctis-v$ver-Win7-x64.zip`n" | Out-File -FilePath ./SHA256SUMS -Encoding ascii
+          $zipHash = (Get-FileHash -Algorithm SHA256 ./Noctis-v$ver-Win7-x64.zip).Hash.ToLowerInvariant()
+
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (Test-Path $iscc) {
+            Write-Host "Compiling Inno Setup installer..."
+            & $iscc installer.iss "/DMyAppVersion=$ver" "/DSourceDir=dist\noctis-win7"
+            if (Test-Path "installer-output/Noctis-v$ver-Setup.exe") {
+              Move-Item "installer-output/Noctis-v$ver-Setup.exe" "./Noctis-v$ver-Setup.exe"
+              $exeHash = (Get-FileHash -Algorithm SHA256 ./Noctis-v$ver-Setup.exe).Hash.ToLowerInvariant()
+              "$exeHash  Noctis-v$ver-Setup.exe`n$zipHash  Noctis-v$ver-Win7-x64.zip`n" | Out-File -FilePath ./SHA256SUMS -Encoding ascii
+            } else {
+              "$zipHash  Noctis-v$ver-Win7-x64.zip`n" | Out-File -FilePath ./SHA256SUMS -Encoding ascii
+            }
+          } else {
+            "$zipHash  Noctis-v$ver-Win7-x64.zip`n" | Out-File -FilePath ./SHA256SUMS -Encoding ascii
+          }
           echo "APP_VERSION=$ver" >> $env:GITHUB_ENV
 
       - name: Upload artifact
@@ -48,7 +63,8 @@ jobs:
         with:
           name: Noctis-v${{ env.APP_VERSION }}-Win7-x64
           path: |
-            ./Noctis-v${{ env.APP_VERSION }}-Win7-x64.zip
+            ./Noctis-v*-Setup.exe
+            ./Noctis-v*-Win7-x64.zip
             ./SHA256SUMS
           retention-days: 30
 
@@ -59,4 +75,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ver = $env:APP_VERSION
+          if (Test-Path "./Noctis-v$ver-Setup.exe") {
+            gh release upload "v$ver" "./Noctis-v$ver-Setup.exe" --clobber
+          }
           gh release upload "v$ver" "./Noctis-v$ver-Win7-x64.zip" "./SHA256SUMS" --clobber
