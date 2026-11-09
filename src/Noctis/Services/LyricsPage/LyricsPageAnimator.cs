@@ -99,8 +99,9 @@ public sealed class LyricsPageAnimator : IShareFrameAnimator
             colors.Add(SKColors.Black.WithAlpha((byte)Math.Round(255 * x * x * (3 - 2 * x))));
             positions.Add(x * fade);
         }
-        foreach (var x in steps.Reverse())
+        for (int i = steps.Length - 1; i >= 0; i--)
         {
+            var x = steps[i];
             colors.Add(SKColors.Black.WithAlpha((byte)Math.Round(255 * x * x * (3 - 2 * x))));
             positions.Add(1f - x * fade);
         }
