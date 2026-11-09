@@ -71,10 +71,10 @@ public sealed class LyricsSearchIndex
         _refreshGate.Wait(cancellation);
         try
         {
-            if (_cacheListedAt == 0 || System.Diagnostics.Stopwatch.GetElapsedTime(_cacheListedAt) > CacheListInterval)
+            if (_cacheListedAt == 0 || Stopwatch.GetElapsedTime(_cacheListedAt) > CacheListInterval)
             {
                 _cacheFiles = ListCacheFiles();
-                _cacheListedAt = System.Diagnostics.Stopwatch.GetTimestamp();
+                _cacheListedAt = Stopwatch.GetTimestamp();
             }
             HashSet<Guid>? storedIds = null;
             LyricsStore? listedStore = null;

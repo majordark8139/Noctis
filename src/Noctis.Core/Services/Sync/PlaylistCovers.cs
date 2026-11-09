@@ -29,14 +29,25 @@ public static class PlaylistCovers
     /// <summary>Where the server keeps covers a phone sent until its playlist push applies them.</summary>
     public static string StagingDirectory(string dataDirectory) => Path.Combine(dataDirectory, "sync", "playlist-covers");
 
-    public static bool IsHash(string? value) =>
-        value is { Length: HashLength } && value.AsSpan().ContainsAnyExcept("0123456789abcdef") == false;
+    public static bool IsHash(string? value)
+    {
+        if (value is not { Length: HashLength }) return false;
+        foreach (var c in value)
+        {
+            if (!((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')))
+                return false;
+        }
+        return true;
+    }
 
     public static string Hash(ReadOnlySpan<byte> bytes) =>
         Convert.ToHexString(SHA256.HashData(bytes), 0, HashLength / 2).ToLowerInvariant();
 
-    public static string Hash(Stream stream) =>
-        Convert.ToHexString(SHA256.HashData(stream), 0, HashLength / 2).ToLowerInvariant();
+    public static string Hash(Stream stream)
+    {
+        using var sha = SHA256.Create();
+        return Convert.ToHexString(sha.ComputeHash(stream), 0, HashLength / 2).ToLowerInvariant();
+    }
 
     /// <summary>The extension for a picture both apps can show, from its first bytes; null for anything else.</summary>
     public static string? ImageExtension(ReadOnlySpan<byte> head)
