@@ -34,7 +34,8 @@ public sealed class UpdateService
     public static string DescribeBuild()
     {
         var v = CurrentVersion;
-        return $"Noctis {v.Major}.{v.Minor}.{v.Build}" + (IsPrereleaseBuild ? " (pre-release)" : "")
+        var verStr = v.Revision > 0 ? $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}" : $"{v.Major}.{v.Minor}.{v.Build}";
+        return $"Noctis {verStr}" + (IsPrereleaseBuild ? " (pre-release)" : "")
              + $"\nInstall source: {Source}"
              + (MacRosetta.IsTranslated == true ? "\nRunning under Rosetta 2: Intel (x64) build on Apple Silicon" : "");
     }
@@ -44,7 +45,9 @@ public sealed class UpdateService
         get
         {
             var v = CurrentVersion;
-            return $"Version {v.Major}.{v.Minor}.{v.Build}";
+            return v.Revision > 0
+                ? $"Version {v.Major}.{v.Minor}.{v.Build}.{v.Revision}"
+                : $"Version {v.Major}.{v.Minor}.{v.Build}";
         }
     }
 

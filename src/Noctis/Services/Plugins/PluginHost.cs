@@ -1077,6 +1077,10 @@ public sealed class PluginHost
         }
 
         var plugin = new LoadedPlugin(dir, assembly, manifest, error) { Content = content };
+        if (string.Equals(plugin.Id, "dev.noctis.plugins.albumroulette", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.AlbumRoulette.AlbumRoulettePlugin();
+        }
         Prepare(plugin);
         return plugin;
     }

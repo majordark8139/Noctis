@@ -31,10 +31,10 @@ public sealed class DailyPicker : IDisposable
     public void Start(TimeSpan? firstLook = null)
     {
         _host.SettingsChanged += OnSettingsChanged;
-        Schedule(firstLook ?? TimeSpan.FromSeconds(20));
+        Schedule(firstLook ?? TimeSpan.FromSeconds(20.0));
     }
 
-    private void OnSettingsChanged(object? sender, EventArgs e) => Schedule(TimeSpan.FromSeconds(2));
+    private void OnSettingsChanged(object? sender, EventArgs e) => Schedule(TimeSpan.FromSeconds(2.0));
 
     private void Schedule(TimeSpan wait)
     {

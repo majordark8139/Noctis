@@ -8,7 +8,8 @@
     Add to queue). `dotnet build -c Release` writes bin/Release/Noctis.Plugins.AlbumRoulette-<version>.zip.
   -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Noctis.Plugins.AlbumRoulette</RootNamespace>
@@ -16,10 +17,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj">
-      <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj" />
   </ItemGroup>
   <!-- Release builds also write bin/Release/Noctis.Plugins.AlbumRoulette-<version>.zip (DLL + plugin.json + icon.png). -->
   <Import Project="..\..\samples\PluginPackage.targets" />

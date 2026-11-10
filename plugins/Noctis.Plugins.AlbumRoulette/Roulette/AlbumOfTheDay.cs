@@ -59,9 +59,9 @@ public static class AlbumOfTheDay
         hour = Math.Clamp(hour, 0, 23);
         var today = new DateTimeOffset(localNow.Year, localNow.Month, localNow.Day, hour, 0, 0, localNow.Offset);
         var next = doneToday || localNow >= today ? today.AddDays(1) : today;
-        if (!doneToday && localNow >= today) return TimeSpan.FromSeconds(5);
+        if (!doneToday && localNow >= today) return TimeSpan.FromSeconds(5.0);
         var wait = next - localNow;
-        return wait > TimeSpan.FromHours(1) ? TimeSpan.FromHours(1) : wait < TimeSpan.FromSeconds(5) ? TimeSpan.FromSeconds(5) : wait;
+        return wait > TimeSpan.FromHours(1.0) ? TimeSpan.FromHours(1.0) : wait < TimeSpan.FromSeconds(5.0) ? TimeSpan.FromSeconds(5.0) : wait;
     }
 
     /// <summary>FNV-1a, mixed (stable across runs and machines, unlike string.GetHashCode).</summary>

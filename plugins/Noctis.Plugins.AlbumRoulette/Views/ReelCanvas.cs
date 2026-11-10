@@ -40,7 +40,7 @@ public sealed class ReelCanvas : Control
     public ReelCanvas()
     {
         _onFrame = OnFrame;
-        _idle = new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, (_, _) => CheckIdle());
+        _idle = new DispatcherTimer(TimeSpan.FromMilliseconds(250.0), DispatcherPriority.Background, (_, _) => CheckIdle());
         ClipToBounds = true;
     }
 
