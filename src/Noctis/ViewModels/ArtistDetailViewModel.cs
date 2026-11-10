@@ -1356,8 +1356,9 @@ public partial class ArtistDetailViewModel : ViewModelBase, ISearchable, IDispos
 public sealed partial class SimilarArtistRow : ObservableObject
 {
     public required string Name { get; init; }
-    public string ImagePath { get; init; } = string.Empty;
-    public bool HasImage => ImagePath.Length > 0;
+    [ObservableProperty] private string _imagePath = string.Empty;
+    public bool HasImage => !string.IsNullOrEmpty(ImagePath);
+    partial void OnImagePathChanged(string value) => OnPropertyChanged(nameof(HasImage));
     /// <summary>True when the library has this artist: the tile opens their page; a
     /// stranger's tile is inert and dimmed.</summary>
     [ObservableProperty] private bool _isInLibrary;

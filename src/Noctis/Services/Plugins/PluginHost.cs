@@ -387,26 +387,75 @@ internal sealed class PluginLoadContext : AssemblyLoadContext
     {
         _mainPath = mainAssemblyPath;
         _resolver = new AssemblyDependencyResolver(mainAssemblyPath);
+        Resolving += (ctx, name) => ResolveSharedAssembly(name);
     }
 
     public Assembly LoadMain() => LoadFromBytes(_mainPath);
 
+    private static Assembly? ResolveSharedAssembly(AssemblyName assemblyName)
+    {
+        if (assemblyName.Name is null) return null;
+
+        // Shared surface: the host's assemblies win so INoctisPlugin/Control are the same types.
+        // The abstractions kit is always shared across versions.
+        if (string.Equals(assemblyName.Name, "Noctis.Plugins.Abstractions", StringComparison.OrdinalIgnoreCase))
+            return typeof(INoctisPlugin).Assembly;
+
+        // BCL, Avalonia, and host assemblies: return the host's loaded assembly directly by simple name.
+        // Bypasses version-mismatch rejection when plugins targeting newer runtimes (e.g. .NET 10 or Avalonia 12)
+        // are loaded on .NET 6 / Avalonia 11.
+        var loaded = Default.Assemblies.FirstOrDefault(a => string.Equals(a.GetName().Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase))
+            ?? AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => string.Equals(a.GetName().Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase));
+        if (loaded != null)
+            return loaded;
+
+        // If not loaded yet into Default, attempt unversioned resolution in Default ALC
+        try
+        {
+            return Default.LoadFromAssemblyName(new AssemblyName(assemblyName.Name));
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     protected override Assembly? Load(AssemblyName assemblyName)
     {
-        // Shared surface: the host's assemblies win so INoctisPlugin/Control are the same types.
-        // The kit is always shared, whatever version the plugin was compiled against (minor
-        // versions only add, so a 1.0 plugin binds to the host's 1.1).
-        if (string.Equals(assemblyName.Name, "Noctis.Plugins.Abstractions", StringComparison.OrdinalIgnoreCase)
-            || Default.Assemblies.Any(a => string.Equals(a.GetName().Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase)))
-            return null;
+        if (ResolveSharedAssembly(assemblyName) is { } shared)
+            return shared;
+
         var path = _resolver.ResolveAssemblyToPath(assemblyName);
-        return path is null ? null : LoadFromBytes(path);
+        if (path is not null)
+            return LoadFromBytes(path);
+
+        // Fallback: check plugin directory for dependency assembly by simple name
+        var pluginDir = System.IO.Path.GetDirectoryName(_mainPath);
+        if (!string.IsNullOrEmpty(pluginDir))
+        {
+            var direct = System.IO.Path.Combine(pluginDir, $"{assemblyName.Name}.dll");
+            if (File.Exists(direct))
+                return LoadFromBytes(direct);
+        }
+
+        return null;
     }
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
         var path = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
-        return path is null ? IntPtr.Zero : LoadUnmanagedDllFromPath(path);
+        if (path is not null) return LoadUnmanagedDllFromPath(path);
+
+        var pluginDir = System.IO.Path.GetDirectoryName(_mainPath);
+        if (!string.IsNullOrEmpty(pluginDir))
+        {
+            var direct = System.IO.Path.Combine(pluginDir, unmanagedDllName);
+            if (File.Exists(direct)) return LoadUnmanagedDllFromPath(direct);
+            direct = System.IO.Path.Combine(pluginDir, $"{unmanagedDllName}.dll");
+            if (File.Exists(direct)) return LoadUnmanagedDllFromPath(direct);
+        }
+
+        return IntPtr.Zero;
     }
 
     private Assembly LoadFromBytes(string path)
@@ -1276,7 +1325,17 @@ public sealed class PluginHost
     {
         // One plugin per folder. plugin.json's entryType picks explicitly; otherwise a type named
         // like the folder (so a test can install the same DLL twice), else the first by name.
-        var candidates = assembly.GetTypes()
+        Type[] allTypes;
+        try
+        {
+            allTypes = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException rtl)
+        {
+            allTypes = rtl.Types.Where(t => t != null).ToArray()!;
+        }
+
+        var candidates = allTypes
             .Where(t => typeof(INoctisPlugin).IsAssignableFrom(t) && !t.IsAbstract && t.GetConstructor(Type.EmptyTypes) is not null)
             .OrderBy(t => t.FullName, StringComparer.Ordinal)
             .ToList();

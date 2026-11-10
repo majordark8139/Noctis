@@ -51,7 +51,41 @@ public sealed class SimilarArtistsService
         var cached = ReadCache(path);
         var sameAccount = cached != null && cached.PinnedDeezerId == pinnedDeezerId;
         if (cached != null && sameAccount && !IsStale(cached))
+        {
+            var missing = new List<SimilarArtist>();
+            foreach (var a in cached.Artists)
+            {
+                var local = Path.Combine(_imageDir, $"{a.DeezerId}.jpg");
+                if (File.Exists(local))
+                {
+                    a.ImagePath = local;
+                }
+                else if (!string.IsNullOrEmpty(a.PictureUrl))
+                {
+                    a.ImagePath = string.Empty;
+                    missing.Add(a);
+                }
+            }
+
+            if (missing.Count == 0)
+                return cached.Artists;
+
+            foreach (var a in missing)
+            {
+                if (ct.IsCancellationRequested) break;
+                var local = Path.Combine(_imageDir, $"{a.DeezerId}.jpg");
+                try
+                {
+                    await Task.Delay(RequestPacingMs, ct).ConfigureAwait(false);
+                    await DownloadAsync(a.PictureUrl, local, ct).ConfigureAwait(false);
+                    if (File.Exists(local)) a.ImagePath = local;
+                }
+                catch (OperationCanceledException) { break; }
+                catch { }
+            }
+            WriteCache(path, cached);
             return cached.Artists;
+        }
 
         await _gate.WaitAsync(ct).ConfigureAwait(false);
         try
@@ -77,8 +111,9 @@ public sealed class SimilarArtistsService
     }
 
     /// <summary>Bumped when the way the Deezer account is picked changes, so lists built
-    /// for the wrong same-name account are re-fetched. 1: names folded without diacritics.</summary>
-    internal const int PickerVersion = 1;
+    /// for the wrong same-name account are re-fetched. 1: names folded without diacritics.
+    /// 2: backfill missing portraits.</summary>
+    internal const int PickerVersion = 2;
 
     private static bool IsStale(SimilarArtistsCache c)
         => c.Picker != PickerVersion
@@ -148,10 +183,18 @@ public sealed class SimilarArtistsService
     {
         try
         {
+            if (url.StartsWith("https://", StringComparison.OrdinalIgnoreCase) &&
+                (url.Contains("dzcdn.net", StringComparison.OrdinalIgnoreCase) || url.Contains("deezer.com", StringComparison.OrdinalIgnoreCase)))
+            {
+                url = "http://" + url.Substring(8);
+            }
+            var dir = Path.GetDirectoryName(local);
+            if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+
             using var resp = await _http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             if (!resp.IsSuccessStatusCode) return;
             var bytes = await HttpSafety.ReadBytesBoundedAsync(resp.Content, MaxImageBytes, ct).ConfigureAwait(false);
-            if (bytes.Length == 0) return;
+            if (bytes.Length == 0 || !HttpSafety.LooksLikeImage(bytes)) return;
             var tmp = local + ".tmp";
             await File.WriteAllBytesAsync(tmp, bytes, ct).ConfigureAwait(false);
             File.Move(tmp, local, overwrite: true);
