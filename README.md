@@ -51,6 +51,15 @@
 For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
 - 📦 **[Noctis-v1.6.9-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.9/Noctis-v1.6.9-Win7-x64.zip)** (from [Release v1.6.9](https://github.com/majordark8139/Noctis/releases/tag/v1.6.9))
 
+> [!IMPORTANT]
+> **Updating from v1.6.7 or v1.6.8**: The in-app updater in builds v1.6.7 and v1.6.8 cannot self-update due to an upstream installer mismatch (older builds expected an installer `.exe` and fail when downloading `.zip` archives). 
+> **Upgrade instructions for v1.6.7 / v1.6.8:**
+> 1. Download `Noctis-v1.6.9-Win7-x64.zip`.
+> 2. Extract the contents directly into your existing Noctis folder, replacing/overwriting all files.
+> 3. Launch `Noctis.exe` directly from your portable folder.
+>
+> **In-App Updating for Future Releases (v1.6.9+)**: Starting with **v1.6.9**, a native portable self-update engine is built directly into Noctis. Future updates (e.g., v1.7.0+) will automatically update in-place: clicking **Settings → About → Check for updates → Install & restart** will download the new release `.zip`, stage and extract it natively, cleanly replace files in your existing portable folder, and restart Noctis without any installer, without touching the C: drive, and without creating Start Menu shortcuts.
+
 **Windows 7 Edition Highlights:**
 - **Zero prerequisites**: Fully self-contained .NET 6 package — simply extract and run `Noctis.exe` with no .NET runtime or desktop frameworks required.
 - **Multichannel (5.1 & 7.1) Surround Sound**: Native surround sound routing directly to your AV receiver or surround soundcard over WASAPI.

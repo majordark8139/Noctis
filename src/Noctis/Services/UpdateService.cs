@@ -835,59 +835,52 @@ public sealed class UpdateService
         {
             var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             var exePath = Process.GetCurrentProcess().MainModule?.FileName ?? Path.Combine(appDir, "Noctis.exe");
-            var pid = Environment.ProcessId;
-
-            // Ensure the file has a .zip extension for Shell.Application
-            if (!zipPath.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
-            {
-                var renamedZip = Path.ChangeExtension(zipPath, ".zip");
-                try
-                {
-                    File.Move(zipPath, renamedZip, overwrite: true);
-                    zipPath = renamedZip;
-                }
-                catch { }
-            }
 
             var tempDir = Path.GetTempPath();
             var runTag = Guid.NewGuid().ToString("N")[..8];
+            var stagingDir = Path.Combine(tempDir, $"noctis_stage_{runTag}");
+
+            if (Directory.Exists(stagingDir))
+            {
+                try { Directory.Delete(stagingDir, true); } catch { }
+            }
+            Directory.CreateDirectory(stagingDir);
+
+            // Extract the zip completely while Noctis is still running using .NET 6's native ZipFile
+            System.IO.Compression.ZipFile.ExtractToDirectory(zipPath, stagingDir, overwriteFiles: true);
+
+            // Check if the zip extracted into a subfolder (e.g. if the archive wrapped everything in a root folder)
+            var sourceDir = stagingDir;
+            if (!File.Exists(Path.Combine(sourceDir, "Noctis.exe")))
+            {
+                var candidate = Directory.GetDirectories(stagingDir)
+                    .FirstOrDefault(d => File.Exists(Path.Combine(d, "Noctis.exe")));
+                if (candidate != null)
+                {
+                    sourceDir = candidate;
+                }
+            }
+
             var batPath = Path.Combine(tempDir, $"noctis_update_{runTag}.cmd");
-            var vbsPath = Path.Combine(tempDir, $"noctis_unzip_{runTag}.vbs");
 
-            // VBScript to extract zip contents into appDir using Windows Shell.Application (supported natively on Win7 through Win11)
-            var vbsCode =
-                "Set fso = CreateObject(\"Scripting.FileSystemObject\")\r\n" +
-                "Set shell = CreateObject(\"Shell.Application\")\r\n" +
-                "Set zip = shell.NameSpace(WScript.Arguments(0))\r\n" +
-                "Set target = shell.NameSpace(WScript.Arguments(1))\r\n" +
-                "If Not (zip Is Nothing) And Not (target Is Nothing) Then\r\n" +
-                "    target.CopyHere zip.Items, 16\r\n" +
-                "    Dim prevCount, stableCount\r\n" +
-                "    prevCount = -1 : stableCount = 0\r\n" +
-                "    Do\r\n" +
-                "        WScript.Sleep 500\r\n" +
-                "        Dim curCount : curCount = target.Items.Count\r\n" +
-                "        If curCount = prevCount Then stableCount = stableCount + 1 Else stableCount = 0 : prevCount = curCount\r\n" +
-                "    Loop While stableCount < 3\r\n" +
-                "    WScript.Sleep 1000\r\n" +
-                "End If\r\n";
-
-            File.WriteAllText(vbsPath, vbsCode);
-
-            // Batch script to wait for Noctis to exit (testing file lock on exe), extract update, relaunch, and clean up
+            // Batch script to:
+            // 1. Wait for running Noctis.exe to exit (polling file lock on exe)
+            // 2. Overwrite appDir with the staged files using robocopy (built into Windows Vista/7/8/10/11) with xcopy fallback
+            // 3. Relaunch Noctis.exe from its original location
+            // 4. Clean up the staging dir, zip file, and batch script
             var batCode =
                 "@echo off\r\n" +
                 ":wait_exit\r\n" +
                 $"2>NUL (>>\"{exePath}\" call ) && (goto :unlocked) || (ping -n 2 127.0.0.1 >NUL & goto :wait_exit)\r\n" +
                 ":unlocked\r\n" +
-                $"ping -n 2 127.0.0.1 >NUL\r\n" +
-                $"powershell -NoProfile -Command \"Expand-Archive -Path '{zipPath}' -DestinationPath '{appDir}' -Force\" 2>NUL\r\n" +
-                "if errorlevel 1 (\r\n" +
-                $"    cscript //nologo \"{vbsPath}\" \"{zipPath}\" \"{appDir}\"\r\n" +
+                "ping -n 2 127.0.0.1 >NUL\r\n" +
+                $"robocopy \"{sourceDir}\" \"{appDir}\" /E /IS /IT /NP /NDL /NFL /NJH /NJS /R:5 /W:1 >NUL 2>&1\r\n" +
+                "if errorlevel 8 (\r\n" +
+                $"    xcopy /s /e /y /q \"{sourceDir}\\*\" \"{appDir}\\\" >NUL 2>&1\r\n" +
                 ")\r\n" +
                 $"start \"\" \"{exePath}\"\r\n" +
+                $"rd /s /q \"{stagingDir}\" 2>NUL\r\n" +
                 $"del \"{zipPath}\" 2>NUL\r\n" +
-                $"del \"{vbsPath}\" 2>NUL\r\n" +
                 "(goto) 2>NUL & del \"%~f0\" 2>NUL\r\n";
 
             File.WriteAllText(batPath, batCode);
