@@ -42,7 +42,7 @@ public sealed class YouTubeImportPlugin : INoctisPlugin, IPluginViewProvider
     {
         _host = host;
         _lifetime = new CancellationTokenSource();
-        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+        _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30.0) };
         // GitHub's API refuses requests without a User-Agent (the update check).
         _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Noctis-AddFromYouTube", Version));
         _state = new ImportState(host.DataDirectory, () => LegacyAppSettings.Read(host.DataDirectory, LegacyAppSettings.DownloadFolderKey));

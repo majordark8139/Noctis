@@ -9,7 +9,8 @@
     `dotnet build -c Release` writes bin/Release/Noctis.Plugins.AlbumTown-<version>.zip.
   -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Noctis.Plugins.AlbumTown</RootNamespace>
@@ -17,10 +18,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj">
-      <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj" />
   </ItemGroup>
   <!-- Release builds also write bin/Release/Noctis.Plugins.AlbumTown-<version>.zip (DLL + plugin.json). -->
   <Import Project="..\..\samples\PluginPackage.targets" />

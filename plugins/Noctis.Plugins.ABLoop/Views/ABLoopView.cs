@@ -149,7 +149,7 @@ public sealed class ABLoopView : UserControl
 
         // Shift on a nudge arrow takes the other step: read it as the press goes down.
         AddHandler(PointerPressedEvent, (_, e) => _shift = e.KeyModifiers.HasFlag(KeyModifiers.Shift), RoutingStrategies.Tunnel, handledEventsToo: true);
-        _frame = new DispatcherTimer(TimeSpan.FromMilliseconds(33), DispatcherPriority.Background, (_, _) => UpdatePosition());
+        _frame = new DispatcherTimer(TimeSpan.FromMilliseconds(33.0), DispatcherPriority.Background, (_, _) => UpdatePosition());
         _session.Changed += OnSessionChanged;
         ApplyTheme(LoopTheme.Dark);
         Refresh();
@@ -205,7 +205,7 @@ public sealed class ABLoopView : UserControl
 
     private void ToggleStep()
     {
-        _session.NudgeStep = _session.NudgeStep >= TimeSpan.FromSeconds(1) ? TimeSpan.FromMilliseconds(100) : TimeSpan.FromSeconds(1);
+        _session.NudgeStep = _session.NudgeStep >= TimeSpan.FromSeconds(1.0) ? TimeSpan.FromMilliseconds(100.0) : TimeSpan.FromSeconds(1.0);
         Refresh();
     }
 
@@ -243,7 +243,7 @@ public sealed class ABLoopView : UserControl
         _loopButton.IsEnabled = engine.HasPart;
         _loopLabel.Text = engine.Enabled ? "Looping" : "Loop";
         _countLabel.Text = LoopSession.CountText(engine.Count);
-        _stepLabel.Text = _session.NudgeStep >= TimeSpan.FromSeconds(1) ? "Step 1 s" : "Step 0.1 s";
+        _stepLabel.Text = _session.NudgeStep >= TimeSpan.FromSeconds(1.0) ? "Step 1 s" : "Step 0.1 s";
         _gapLabel.Text = LoopSession.GapText(engine.Gap);
         _saveButton.IsEnabled = engine.HasPart && has;
         _pinLabel.Text = _session.Store.OnTop ? "On top" : "Keep on top";

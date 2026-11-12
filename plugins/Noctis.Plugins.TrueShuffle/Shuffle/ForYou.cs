@@ -49,7 +49,7 @@ public sealed class TasteModel
         _ => 0,
     };
 
-    private static readonly TimeSpan HalfLife = TimeSpan.FromDays(30), SkipHalfLife = TimeSpan.FromDays(14);
+    private static readonly TimeSpan HalfLife = TimeSpan.FromDays(30.0), SkipHalfLife = TimeSpan.FromDays(14.0);
     private readonly Dictionary<string, double> _track = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _artist = new(StringComparer.Ordinal);
     private readonly Dictionary<string, double> _genre = new(StringComparer.Ordinal);
@@ -235,7 +235,7 @@ public sealed record ForYouContext(IReadOnlyList<string> Recent, IReadOnlyCollec
 public static class ForYouPlanner
 {
     /// <summary>Songs heard this recently are left out while other songs are available.</summary>
-    public static readonly TimeSpan RestPeriod = TimeSpan.FromHours(12);
+    public static readonly TimeSpan RestPeriod = TimeSpan.FromHours(12.0);
 
     public static List<string> Plan(IReadOnlyList<string> candidates, TasteModel model, ForYouContext ctx)
     {
@@ -273,7 +273,7 @@ public static class ForYouPlanner
             parts[3][i] = weight == 0 ? 0 : fit / weight;
             parts[4][i] = model.PlaylistAffinity(f.Id, contextIds);
             // Rediscovery: liked, and not heard for three weeks or more.
-            parts[5][i] = model.Track(f.Id) > 0.15 && model.LastHeard(f.Id) is { } heard && ctx.NowUtc - heard > TimeSpan.FromDays(21) ? model.Track(f.Id) : 0;
+            parts[5][i] = model.Track(f.Id) > 0.15 && model.LastHeard(f.Id) is { } heard && ctx.NowUtc - heard > TimeSpan.FromDays(21.0) ? model.Track(f.Id) : 0;
             // Fatigue and this session's skips (higher is worse).
             double tired = model.LastHeard(f.Id) is { } last ? Math.Pow(0.5, Math.Max(0, (ctx.NowUtc - last).TotalDays) / 1.5) : 0;
             double likeSkipped = 0;

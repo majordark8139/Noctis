@@ -121,7 +121,7 @@ public sealed partial class AlbumTownView : UserControl
         _newCrowd.Margin = new Thickness(8, 0, 0, 0);
         _resetRooms = Pill(ResetLabel, ResetRoomsClicked);
         _resetRooms.Margin = new Thickness(8, 0, 0, 0);
-        _resetTimer = new DispatcherTimer(TimeSpan.FromSeconds(3), DispatcherPriority.Background, (_, _) => DisarmReset());
+        _resetTimer = new DispatcherTimer(TimeSpan.FromSeconds(3.0), DispatcherPriority.Background, (_, _) => DisarmReset());
         _fullscreen = Pill("Full screen", ToggleFullScreen);
         _fullscreen.Margin = new Thickness(8, 0, 0, 0);
 
@@ -142,7 +142,7 @@ public sealed partial class AlbumTownView : UserControl
         {
             if (e.Property == RangeBase.ValueProperty) _plaza.Zoom = _zoom.Value;
         };
-        _zoomSave = new DispatcherTimer(TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, (_, _) =>
+        _zoomSave = new DispatcherTimer(TimeSpan.FromMilliseconds(500.0), DispatcherPriority.Background, (_, _) =>
         {
             _zoomSave!.Stop();
             _host.SaveZoom(_plaza.Zoom);

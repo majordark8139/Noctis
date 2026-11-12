@@ -57,7 +57,7 @@ public sealed class LoopSession : IDisposable
         NudgeStep = host.NudgeSetting;
         TrackPath = host.TrackPath;
         if (useTimer)
-            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(15), DispatcherPriority.Normal, (_, _) => Tick());
+            _timer = new DispatcherTimer(TimeSpan.FromMilliseconds(15.0), DispatcherPriority.Normal, (_, _) => Tick());
         Engine.Changed += OnEngineChanged;
         Engine.Finished += OnFinished;
         host.TrackChanged += OnTrackChanged;
@@ -118,7 +118,7 @@ public sealed class LoopSession : IDisposable
     public void Nudge(bool a, int direction, bool otherStep = false)
     {
         var step = NudgeStep;
-        if (otherStep) step = step >= TimeSpan.FromSeconds(1) ? TimeSpan.FromMilliseconds(100) : TimeSpan.FromSeconds(1);
+        if (otherStep) step = step >= TimeSpan.FromSeconds(1.0) ? TimeSpan.FromMilliseconds(100.0) : TimeSpan.FromSeconds(1.0);
         Engine.Nudge(a, direction < 0 ? -step : step);
     }
 

@@ -1081,6 +1081,34 @@ public sealed class PluginHost
         {
             plugin.InProcessFactory = () => new Noctis.Plugins.AlbumRoulette.AlbumRoulettePlugin();
         }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.youtubeimport", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.YouTubeImport.YouTubeImportPlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.abloop", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.ABLoop.ABLoopPlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.albumtown", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.AlbumTown.AlbumTownPlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.chords", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.Chords.ChordsPlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.trueshuffle", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.TrueShuffle.TrueShufflePlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.lyricmotion", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.LyricMotion.LyricMotionPlugin();
+        }
+        else if (string.Equals(plugin.Id, "dev.noctis.plugins.mixxx", StringComparison.OrdinalIgnoreCase))
+        {
+            plugin.InProcessFactory = () => new Noctis.Plugins.Mixxx.MixxxPlugin();
+        }
         Prepare(plugin);
         return plugin;
     }

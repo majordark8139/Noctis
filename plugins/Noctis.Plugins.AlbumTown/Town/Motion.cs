@@ -56,7 +56,7 @@ public sealed class FrameGate
         }
         // A little slack: a 60 Hz screen's frames are 16.6 ms apart, so "every 33.3 ms" must
         // accept the second one even when it comes a hair early.
-        if (time - last < interval - TimeSpan.FromMilliseconds(4))
+        if (time - last < interval - TimeSpan.FromMilliseconds(4.0))
         {
             dt = 0;
             return false;

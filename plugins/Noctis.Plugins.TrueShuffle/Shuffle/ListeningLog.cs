@@ -60,7 +60,7 @@ public sealed class PlayTracker
         public bool LastPlaying;
     }
 
-    private static readonly TimeSpan MaxStep = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan MaxStep = TimeSpan.FromSeconds(10.0);
     private static readonly TimeSpan Slack = TimeSpan.FromSeconds(1.5);
     private Active? _active;
 
@@ -129,7 +129,7 @@ public sealed class PlayTracker
     public static PlayEnd Classify(bool advanced, TimeSpan remaining, double coverage)
     {
         if (!advanced) return PlayEnd.Unknown;
-        if (remaining <= TimeSpan.FromSeconds(3) || (remaining <= TimeSpan.FromSeconds(13) && coverage >= 0.8)) return PlayEnd.Finished;
+        if (remaining <= TimeSpan.FromSeconds(3.0) || (remaining <= TimeSpan.FromSeconds(13.0) && coverage >= 0.8)) return PlayEnd.Finished;
         return PlayEnd.Skipped;
     }
 

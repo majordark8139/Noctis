@@ -25,14 +25,14 @@ public interface ILoopPlayer
 public sealed class LoopEngine
 {
     /// <summary>Shortest part that can be looped.</summary>
-    public static readonly TimeSpan MinLength = TimeSpan.FromMilliseconds(100);
+    public static readonly TimeSpan MinLength = TimeSpan.FromMilliseconds(100.0);
     /// <summary>How far past the last report the prediction may run (a stall must not run away).</summary>
-    public static readonly TimeSpan MaxExtrapolation = TimeSpan.FromMilliseconds(1200);
+    public static readonly TimeSpan MaxExtrapolation = TimeSpan.FromMilliseconds(1200.0);
     /// <summary>B is only acted on when the prediction is at most this far past it: a jump far
     /// past B (the user seeking) is not pulled back.</summary>
-    public static readonly TimeSpan CrossWindow = TimeSpan.FromMilliseconds(400);
+    public static readonly TimeSpan CrossWindow = TimeSpan.FromMilliseconds(400.0);
     /// <summary>After a jump, reports that cannot be from after it are ignored for this long.</summary>
-    public static readonly TimeSpan SettleWindow = TimeSpan.FromMilliseconds(700);
+    public static readonly TimeSpan SettleWindow = TimeSpan.FromMilliseconds(700.0);
 
     private readonly ILoopPlayer _player;
     private readonly Func<TimeSpan> _clock;
@@ -224,8 +224,8 @@ public sealed class LoopEngine
                 // Right after a jump: the host's echo of the seek target is not news, and a report
                 // from before the jump (far from A) is stale.
                 var sinceJump = now - (_settleUntil - SettleWindow);
-                var stale = pos < _seekTarget - TimeSpan.FromMilliseconds(300) || pos > _seekTarget + sinceJump + TimeSpan.FromMilliseconds(500);
-                var echo = (pos - _seekTarget).Duration() < TimeSpan.FromMilliseconds(20);
+                var stale = pos < _seekTarget - TimeSpan.FromMilliseconds(300.0) || pos > _seekTarget + sinceJump + TimeSpan.FromMilliseconds(500.0);
+                var echo = (pos - _seekTarget).Duration() < TimeSpan.FromMilliseconds(20.0);
                 if (stale || echo) { _lastPoll = now; return; }
             }
             _anchorPos = pos;
@@ -257,7 +257,7 @@ public sealed class LoopEngine
         if (!_enabled || !_wasPlaying || _a is not { } a || _b is not { } b || b - a < MinLength) return;
         var p = Predict(now);
         var lead = TimeSpan.FromMilliseconds(Math.Clamp(_tickMs / 2, 0.5, 25));
-        if (p + lead < b || p > b + CrossWindow || p < a - TimeSpan.FromMilliseconds(250)) return;
+        if (p + lead < b || p > b + CrossWindow || p < a - TimeSpan.FromMilliseconds(250.0)) return;
 
         Passes++;
         LastJumpError = p - b;

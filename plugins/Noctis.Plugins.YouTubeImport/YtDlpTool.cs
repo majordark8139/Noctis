@@ -61,9 +61,9 @@ public sealed class YtDlpTool
     /// <summary>Null = detect from PATH on first use.</summary>
     internal (bool HasDeno, bool HasNode)? JsRuntimes { get; set; }
     /// <summary>Wait before the n-th retry of a dropped install download (times n); tests shorten it.</summary>
-    internal TimeSpan InstallRetryDelay { get; set; } = TimeSpan.FromSeconds(2);
+    internal TimeSpan InstallRetryDelay { get; set; } = TimeSpan.FromSeconds(2.0);
     /// <summary>A connection that sends nothing for this long is dropped and retried.</summary>
-    internal TimeSpan InstallStallTimeout { get; set; } = TimeSpan.FromSeconds(30);
+    internal TimeSpan InstallStallTimeout { get; set; } = TimeSpan.FromSeconds(30.0);
     internal const int InstallAttempts = 3;
 
     /// <param name="toolsDirectory">Where the installed copy and its update state live.</param>

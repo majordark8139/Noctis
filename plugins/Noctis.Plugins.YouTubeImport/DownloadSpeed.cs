@@ -49,8 +49,8 @@ public static class DownloadFormat
 /// </summary>
 public sealed class DownloadSpeedTracker
 {
-    private static readonly TimeSpan Window = TimeSpan.FromSeconds(3);
-    private static readonly TimeSpan Warmup = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan Window = TimeSpan.FromSeconds(3.0);
+    private static readonly TimeSpan Warmup = TimeSpan.FromMilliseconds(500.0);
 
     private readonly Func<DateTime> _clock;
     private readonly Queue<(DateTime At, long Done)> _samples = new();
@@ -84,7 +84,7 @@ public sealed class DownloadSpeedTracker
 /// </summary>
 internal sealed class ReportThrottle
 {
-    internal static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(250);
+    internal static readonly TimeSpan Interval = TimeSpan.FromMilliseconds(250.0);
 
     private readonly Func<DateTime> _clock;
     private DateTime _last = DateTime.MinValue;

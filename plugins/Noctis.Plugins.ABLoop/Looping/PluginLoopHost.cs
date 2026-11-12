@@ -31,7 +31,7 @@ public sealed class PluginLoopHost : ILoopHost, IDisposable
 
     public TimeSpan GapSetting => ParseSeconds(_host.Settings.GetString("gap"), max: 2);
     public bool KeepLoops => _host.Settings.GetBool("keepLoops", true);
-    public TimeSpan NudgeSetting => ParseSeconds(_host.Settings.GetString("nudge"), max: 1) is { } n && n > TimeSpan.Zero ? n : TimeSpan.FromMilliseconds(100);
+    public TimeSpan NudgeSetting => ParseSeconds(_host.Settings.GetString("nudge"), max: 1) is { } n && n > TimeSpan.Zero ? n : TimeSpan.FromMilliseconds(100.0);
     public event EventHandler? SettingsChanged;
 
     public string? DataDirectory => _host.DataDirectory;

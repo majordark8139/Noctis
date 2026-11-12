@@ -57,7 +57,7 @@ public enum ChordsState
 public sealed class ChordsSession : IDisposable
 {
     /// <summary>Songs longer than this are analysed for their first 15 minutes.</summary>
-    public static readonly TimeSpan MaxLength = TimeSpan.FromMinutes(15);
+    public static readonly TimeSpan MaxLength = TimeSpan.FromMinutes(15.0);
 
     private readonly IChordsHost _host;
     private readonly ChordCache _cache;
@@ -112,7 +112,7 @@ public sealed class ChordsSession : IDisposable
             }
             if (!_host.IsPlaying) return pos;
             var ahead = now - _lastPositionAt;
-            return pos + (ahead > TimeSpan.FromMilliseconds(250) ? TimeSpan.FromMilliseconds(250) : ahead);
+            return pos + (ahead > TimeSpan.FromMilliseconds(250.0) ? TimeSpan.FromMilliseconds(250.0) : ahead);
         }
     }
 

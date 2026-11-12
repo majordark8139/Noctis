@@ -38,7 +38,7 @@ public sealed class PlazaCanvas : Control
 {
     public const double MinZoom = 0.6;
     public const double MaxZoom = 1.6;
-    private static readonly TimeSpan IdleInterval = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan IdleInterval = TimeSpan.FromMilliseconds(250.0);
     private const double GridStep = 64;
     /// <summary>The longest sleep before the plaza checks in anyway (s).</summary>
     private const float MaxSleep = 30;
@@ -88,7 +88,7 @@ public sealed class PlazaCanvas : Control
         Cursor = _arrow;
         _onFrame = OnFrame;
         _idle = new DispatcherTimer(IdleInterval, DispatcherPriority.Background, (_, _) => CheckIdle());
-        _wake = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => Wake());
+        _wake = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Background, (_, _) => Wake());
     }
 
     public PlazaWorld World { get; }

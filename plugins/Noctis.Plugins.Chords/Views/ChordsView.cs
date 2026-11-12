@@ -116,7 +116,7 @@ public sealed class ChordsView : UserControl
         body.Children.Add(_note);
         Content = new Border { Child = body, Padding = new Thickness(18, 14, 18, 14) };
 
-        _frame = new DispatcherTimer(TimeSpan.FromMilliseconds(50), DispatcherPriority.Background, (_, _) => UpdatePosition());
+        _frame = new DispatcherTimer(TimeSpan.FromMilliseconds(50.0), DispatcherPriority.Background, (_, _) => UpdatePosition());
         _session.Changed += OnSessionChanged;
         ApplyTheme(ChordsTheme.Dark);
         Refresh();

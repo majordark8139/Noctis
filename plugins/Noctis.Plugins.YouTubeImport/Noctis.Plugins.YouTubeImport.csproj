@@ -8,7 +8,8 @@
     `dotnet build -c Release` writes bin/Release/Noctis.Plugins.YouTubeImport-<version>.zip.
   -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Noctis.Plugins.YouTubeImport</RootNamespace>
@@ -16,15 +17,12 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj">
-      <Private>false</Private>
-      <ExcludeAssets>runtime</ExcludeAssets>
-    </ProjectReference>
+    <ProjectReference Include="..\..\src\Noctis.Plugins.Abstractions\Noctis.Plugins.Abstractions.csproj" />
     <!-- Compile-time only: Noctis ships these exact versions (TagLib# for its tags, the MVVM
          toolkit for its view models), and a plugin's load context resolves assemblies the app
          has to the app's copy, so the package carries neither. -->
-    <PackageReference Include="TagLibSharp" Version="2.3.0" ExcludeAssets="runtime" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" ExcludeAssets="runtime" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
   <ItemGroup>
     <!-- The yt-dlp seams (process runner, update lookup, clock) are internal; the app's tests drive them. -->

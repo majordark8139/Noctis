@@ -20,7 +20,7 @@ public sealed record Chat(string Topic, string Opener, string Reply)
 public static class TalkLines
 {
     /// <summary>A resident not played for this long says it misses you.</summary>
-    public static readonly TimeSpan Lonely = TimeSpan.FromDays(60);
+    public static readonly TimeSpan Lonely = TimeSpan.FromDays(60.0);
 
     public static Chat Between(TownAlbum a, TownAlbum b, DateTimeOffset now, Random random)
     {

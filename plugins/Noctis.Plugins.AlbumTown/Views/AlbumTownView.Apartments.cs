@@ -147,7 +147,7 @@ public sealed partial class AlbumTownView
         shelfDock.Children.Add(_shelfScroll);
         _shelfBar = new Border { Padding = new Thickness(18, 8, 18, 6), Child = shelfDock };
 
-        _saveTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(600), DispatcherPriority.Background, (_, _) => SaveApartmentsNow());
+        _saveTimer = new DispatcherTimer(TimeSpan.FromMilliseconds(600.0), DispatcherPriority.Background, (_, _) => SaveApartmentsNow());
         BuildPicker();
 
         _apartmentsPage = new DockPanel { IsVisible = false };

@@ -63,7 +63,7 @@ public sealed class ShuffleController : IDisposable
         Playback.TracksQueued += OnTracksQueued;
         if (sample)
         {
-            _sampler = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => Sample());
+            _sampler = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Background, (_, _) => Sample());
             _sampler.Start();
         }
         StartTracking();
@@ -429,7 +429,7 @@ public sealed class ShuffleController : IDisposable
     private void EndTracking(bool advanced)
     {
         if (_tracker.TrackId is null) return;
-        var remaining = TimeSpan.FromMilliseconds(_tracker.DurationMs) - _tracker.LastPosition;
+        var remaining = TimeSpan.FromMilliseconds((double)_tracker.DurationMs) - _tracker.LastPosition;
         var end = PlayTracker.Classify(advanced, remaining, _tracker.Coverage);
         if (_tracker.End(end, DateTime.UtcNow, _clock.Elapsed) is not { } record) return;
         if (record.Outcome is PlayOutcome.StrongSkip or PlayOutcome.QuickSkip) _skipped.Add(record.TrackId);
@@ -509,7 +509,7 @@ public sealed class ShuffleController : IDisposable
         if (_seen is { } seen)
         {
             var data = new CycleData(1, seen.ToArray(), _last);
-            try { Task.Run(() => _cycle.SaveAsync(data)).Wait(TimeSpan.FromSeconds(2)); }
+            try { Task.Run(() => _cycle.SaveAsync(data)).Wait(TimeSpan.FromSeconds(2.0)); }
             catch (Exception ex) { _host.Log("cycle.json on shutdown: " + ex.GetBaseException().Message); }
         }
     }

@@ -401,9 +401,9 @@ public sealed class YouTubeImportView : UserControl
     internal static string RecentDetail(RecentDownload r, DateTimeOffset now)
     {
         var age = now - r.When;
-        var when = age < TimeSpan.FromMinutes(1) ? "just now"
-            : age < TimeSpan.FromHours(1) ? $"{(int)age.TotalMinutes} min ago"
-            : age < TimeSpan.FromDays(1) ? $"{(int)age.TotalHours} h ago"
+        var when = age < TimeSpan.FromMinutes(1.0) ? "just now"
+            : age < TimeSpan.FromHours(1.0) ? $"{(int)age.TotalMinutes} min ago"
+            : age < TimeSpan.FromDays(1.0) ? $"{(int)age.TotalHours} h ago"
             : r.When.LocalDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture);
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(r.Artist)) parts.Add(r.Artist);

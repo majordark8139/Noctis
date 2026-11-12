@@ -32,7 +32,7 @@ public sealed class ApartmentsCanvas : Control
     /// <summary>Room bitmaps (re)built per frame at most.</summary>
     public const int BuildsPerFrame = 4;
     private const double DragThreshold = 5;
-    private static readonly TimeSpan IdleInterval = TimeSpan.FromMilliseconds(250);
+    private static readonly TimeSpan IdleInterval = TimeSpan.FromMilliseconds(250.0);
     private static readonly Comparison<Pet> ByDepth = (a, b) => a.Y.CompareTo(b.Y);
 
     private readonly CoverCache _petCovers;
