@@ -102,7 +102,9 @@ internal sealed class ReportThrottle
 }
 
 /// <summary>Forwards each report on the caller's thread, in order (unlike <see cref="Progress{T}"/>, which posts).</summary>
-internal sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+internal sealed class InlineProgress<T> : IProgress<T>
 {
-    public void Report(T value) => report(value);
+    private readonly Action<T> _report;
+    public InlineProgress(Action<T> report) => _report = report;
+    public void Report(T value) => _report(value);
 }

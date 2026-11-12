@@ -10,6 +10,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Noctis.Plugins.YouTubeImport</RootNamespace>
