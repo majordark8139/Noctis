@@ -67,12 +67,6 @@
     <ProjectReference Include="..\Noctis.UI\Noctis.UI.csproj" />
     <ProjectReference Include="..\..\plugins\Noctis.Plugins.AlbumRoulette\Noctis.Plugins.AlbumRoulette.csproj" />
     <ProjectReference Include="..\..\plugins\Noctis.Plugins.YouTubeImport\Noctis.Plugins.YouTubeImport.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.ABLoop\Noctis.Plugins.ABLoop.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.AlbumTown\Noctis.Plugins.AlbumTown.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.Chords\Noctis.Plugins.Chords.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.TrueShuffle\Noctis.Plugins.TrueShuffle.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.LyricMotion\Noctis.Plugins.LyricMotion.csproj" />
-    <ProjectReference Include="..\..\plugins\Noctis.Plugins.Mixxx\Noctis.Plugins.Mixxx.csproj" />
   </ItemGroup>
   <!-- arm64 (Apple Silicon, Linux arm64): leave Noctis.dll itself out of ReadyToRun. crossgen2
        miscompiles SettingsView's generated XAML method (~320 KB of IL, the largest in the app):

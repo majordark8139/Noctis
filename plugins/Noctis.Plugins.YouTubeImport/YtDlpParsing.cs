@@ -66,8 +66,8 @@ public static partial class YtDlpParsing
         return null;
     }
 
-    [GeneratedRegex(@"^(?:https?://)?(?:www\.|m\.|music\.)?(?:youtube\.com/(?:watch\?.*v=|shorts/|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})", RegexOptions.IgnoreCase)]
-    private static partial Regex YouTubeUrlRegex();
+    private static readonly Regex _youTubeUrlRegex = new(@"^(?:https?://)?(?:www\.|m\.|music\.)?(?:youtube\.com/(?:watch\?.*v=|shorts/|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex YouTubeUrlRegex() => _youTubeUrlRegex;
 
     public static bool LooksLikeYouTubeUrl(string? text) =>
         !string.IsNullOrWhiteSpace(text) && YouTubeUrlRegex().IsMatch(text.Trim());
@@ -171,8 +171,8 @@ public static partial class YtDlpParsing
         return parts.Count >= 3 ? parts.ToArray() : null;
     }
 
-    [GeneratedRegex(@"^v?(\d{4}\.\d{1,2}\.\d{1,2}(?:\.\d+)?)")]
-    private static partial Regex VersionRegex();
+    private static readonly Regex _versionRegex = new(@"^v?(\d{4}\.\d{1,2}\.\d{1,2}(?:\.\d+)?)", RegexOptions.Compiled);
+    private static Regex VersionRegex() => _versionRegex;
 
     /// <summary>Orders yt-dlp versions; an unparseable/missing version sorts below any real one.</summary>
     public static int CompareVersions(string? a, string? b)
@@ -253,8 +253,8 @@ public static partial class YtDlpParsing
         return string.Join(" | ", lines.Skip(Math.Max(0, lines.Length - maxLines)));
     }
 
-    [GeneratedRegex(@"https?://[^\s""']*googlevideo\.com[^\s""']*", RegexOptions.IgnoreCase)]
-    private static partial Regex StreamUrlRegex();
+    private static readonly Regex _streamUrlRegex = new(@"https?://[^\s""']*googlevideo\.com[^\s""']*", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex StreamUrlRegex() => _streamUrlRegex;
 
     /// <summary>"yt-dlp 2026.08.19" plus " · update available" when a newer release is known.</summary>
     public static string VersionLabel(string? installedVersion, string? latestVersion)
@@ -364,14 +364,14 @@ public static partial class YtDlpParsing
 
     // ── Tag inference ─────────────────────────────────────────────────────────
 
-    [GeneratedRegex(@"\s*[\(\[\{](?:[^\)\]\}]*?)(?:official|video|audio|lyric|lyrics|visuali[sz]er|hd|hq|4k|explicit|clean version|music video|mv|remaster(?:ed)?(?:\s+\d{4})?|live|prod\.?)(?:[^\)\]\}]*?)[\)\]\}]", RegexOptions.IgnoreCase)]
-    private static partial Regex NoiseBracketsRegex();
+    private static readonly Regex _noiseBracketsRegex = new(@"\s*[\(\[\{](?:[^\)\]\}]*?)(?:official|video|audio|lyric|lyrics|visuali[sz]er|hd|hq|4k|explicit|clean version|music video|mv|remaster(?:ed)?(?:\s+\d{4})?|live|prod\.?)(?:[^\)\]\}]*?)[\)\]\}]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex NoiseBracketsRegex() => _noiseBracketsRegex;
 
-    [GeneratedRegex(@"\s*[\|•·]\s*.*$")]
-    private static partial Regex TrailingPipeRegex();
+    private static readonly Regex _trailingPipeRegex = new(@"\s*[\|•·]\s*.*$", RegexOptions.Compiled);
+    private static Regex TrailingPipeRegex() => _trailingPipeRegex;
 
-    [GeneratedRegex(@"\s+(?:-|–|—)\s+(?:official\s+)?(?:music\s+)?(?:video|audio|lyrics?|visuali[sz]er)\s*$", RegexOptions.IgnoreCase)]
-    private static partial Regex TrailingDashNoiseRegex();
+    private static readonly Regex _trailingDashNoiseRegex = new(@"\s+(?:-|–|—)\s+(?:official\s+)?(?:music\s+)?(?:video|audio|lyrics?|visuali[sz]er)\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static Regex TrailingDashNoiseRegex() => _trailingDashNoiseRegex;
 
     /// <summary>Strips "(Official Video)", "[Lyrics]", "| Official Audio" and friends from a video title.</summary>
     public static string CleanTitle(string? title)
@@ -443,8 +443,8 @@ public static partial class YtDlpParsing
 
     // ── Progress ──────────────────────────────────────────────────────────────
 
-    [GeneratedRegex(@"\[download\]\s+(\d{1,3}(?:\.\d+)?)%")]
-    private static partial Regex ProgressRegex();
+    private static readonly Regex _progressRegex = new(@"\[download\]\s+(\d{1,3}(?:\.\d+)?)%", RegexOptions.Compiled);
+    private static Regex ProgressRegex() => _progressRegex;
 
     /// <summary>Percent from a <c>[download]  45.3% of 3.21MiB at 1.2MiB/s</c> line, else null.</summary>
     public static double? ParseProgressPercent(string? line)
@@ -456,11 +456,11 @@ public static partial class YtDlpParsing
             : null;
     }
 
-    [GeneratedRegex(@"at\s+([\d.]+)(B|KiB|MiB|GiB)/s")]
-    private static partial Regex SpeedRegex();
+    private static readonly Regex _speedRegex = new(@"at\s+([\d.]+)(B|KiB|MiB|GiB)/s", RegexOptions.Compiled);
+    private static Regex SpeedRegex() => _speedRegex;
 
-    [GeneratedRegex(@"ETA\s+(?:(\d+):)?(\d{1,2}):(\d{2})")]
-    private static partial Regex EtaRegex();
+    private static readonly Regex _etaRegex = new(@"ETA\s+(?:(\d+):)?(\d{1,2}):(\d{2})", RegexOptions.Compiled);
+    private static Regex EtaRegex() => _etaRegex;
 
     /// <summary>
     /// Percent, speed and ETA from a <c>[download]  45.3% of 3.21MiB at 1.2MiB/s ETA 00:04</c>
