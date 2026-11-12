@@ -82,7 +82,7 @@ public sealed class YouTubeImportView : UserControl
         headerGrid.Children.Add(headerText);
 
         // ── Search or paste a link + the round search button + the format. ──
-        QueryBox = new TextBox { Name = "QueryBox", PlaceholderText = "Search or paste a link", MinHeight = 40, VerticalContentAlignment = VerticalAlignment.Center };
+        QueryBox = new TextBox { Name = "QueryBox", Watermark = "Search or paste a link", MinHeight = 40, VerticalContentAlignment = VerticalAlignment.Center };
         QueryBox.Classes.Add("pill-field");
         QueryBox.Bind(TextBox.TextProperty, new Binding(nameof(vm.Query)) { Mode = BindingMode.TwoWay });
         QueryBox.KeyBindings.Add(new KeyBinding { Gesture = new KeyGesture(Key.Enter), Command = vm.SearchCommand });

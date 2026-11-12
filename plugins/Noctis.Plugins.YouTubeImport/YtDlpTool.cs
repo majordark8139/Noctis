@@ -165,11 +165,13 @@ public sealed class YtDlpTool
         }
         Log("YtDlp.ChecksumOk", expected);
         _versionCache = null;
+#if NET7_0_OR_GREATER
         if (!OperatingSystem.IsWindows())
         {
             try { File.SetUnixFileMode(InstalledPath, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute | UnixFileMode.GroupRead | UnixFileMode.GroupExecute | UnixFileMode.OtherRead | UnixFileMode.OtherExecute); }
             catch { }
         }
+#endif
         progress?.Report(1);
         Log("YtDlp.Installed", InstalledPath);
         return InstalledPath;
@@ -229,7 +231,9 @@ public sealed class YtDlpTool
     private static async Task<string> HashFileAsync(string path, CancellationToken ct)
     {
         await using var stream = File.OpenRead(path);
-        return Convert.ToHexStringLower(await SHA256.HashDataAsync(stream, ct).ConfigureAwait(false));
+        using var sha = SHA256.Create();
+        var hash = await Task.Run(() => sha.ComputeHash(stream), ct).ConfigureAwait(false);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     /// <summary>"2026.08.12"-style version, or null when the tool cannot run.</summary>
@@ -562,9 +566,9 @@ public sealed class YtDlpTool
         using var reg = ct.Register(() => { try { if (!p.HasExited) p.Kill(true); } catch { } });
 
         var stdout = new StringBuilder();
-        var stderrTask = p.StandardError.ReadToEndAsync(ct);
+        var stderrTask = p.StandardError.ReadToEndAsync();
         string? line;
-        while ((line = await p.StandardOutput.ReadLineAsync(ct).ConfigureAwait(false)) is not null)
+        while ((line = await p.StandardOutput.ReadLineAsync().ConfigureAwait(false)) is not null)
         {
             stdout.Append(line).Append('\n');
             onStdoutLine?.Invoke(line);
