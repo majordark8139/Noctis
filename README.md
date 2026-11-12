@@ -24,6 +24,25 @@
 
 ---
 
+## Demo
+
+https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/noctis-demo.mp4
+
+> [!NOTE]
+> The demonstration video above is quite laggy due to the overhead of real-time screen recording on low-end hardware. Noctis itself runs noticeably smoother in daily playback and navigation.
+>
+> **Test Machine Specs:**
+> - **CPU**: Intel Core i3-4005U
+> - **GPU**: Intel HD Graphics 4400 (64 MB VRAM)
+> - **RAM**: 4 GB DDR3
+> - **Storage**: Mechanical HDD
+> - **Form Factor**: Laptop
+> - **OS**: Windows 7 SP1 (64-bit)
+>
+> *(Direct video downloads: [MP4](https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/noctis-demo.mp4) · [MKV](https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/noctis-demo.mkv))*
+
+---
+
 ## Screenshots
 
 #### Artist pages
@@ -49,7 +68,7 @@
 ### 🪟 Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
 
 For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
-- 📦 **[Noctis-v1.6.9-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.9/Noctis-v1.6.9-Win7-x64.zip)** (from [Release v1.6.9](https://github.com/majordark8139/Noctis/releases/tag/v1.6.9))
+- 📦 **[Noctis-v1.6.9.2-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/Noctis-v1.6.9.2-Win7-x64.zip)** (from [Release v1.6.9.2](https://github.com/majordark8139/Noctis/releases/tag/v1.6.9.2))
 
 > [!IMPORTANT]
 > **Updating from v1.6.7 or v1.6.8**: The in-app updater in builds v1.6.7 and v1.6.8 cannot self-update due to an upstream installer mismatch (older builds expected an installer `.exe` and fail when downloading `.zip` archives). 
