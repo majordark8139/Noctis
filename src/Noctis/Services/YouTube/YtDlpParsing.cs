@@ -97,7 +97,6 @@ public static partial class YtDlpParsing
 
     // ── Versions / updates ────────────────────────────────────────────────────
 
-    public const string LatestReleaseApiUrl = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest";
     public static readonly TimeSpan UpdateCheckInterval = TimeSpan.FromHours(24);
 
     /// <summary>"2026.08.19" / "2026.08.19.1" (also a leading "v" or a trailing nightly suffix) → numeric parts; null when not a yt-dlp version.</summary>
