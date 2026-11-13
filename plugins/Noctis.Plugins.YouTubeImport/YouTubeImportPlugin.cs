@@ -46,6 +46,20 @@ public sealed class YouTubeImportPlugin : INoctisPlugin, IPluginViewProvider
         // GitHub's API refuses requests without a User-Agent (the update check).
         _http.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Noctis-AddFromYouTube", Version));
         _state = new ImportState(host.DataDirectory, () => LegacyAppSettings.Read(host.DataDirectory, LegacyAppSettings.DownloadFolderKey));
+        if (YtDlpParsing.IsLegacyWindows())
+        {
+            try
+            {
+                var toolsDir = ToolsDirectory(host.DataDirectory);
+                var broken = Path.Combine(toolsDir, "yt-dlp.exe");
+                var win7 = Path.Combine(toolsDir, "yt-dlp_win7.exe");
+                if (File.Exists(broken) && !File.Exists(win7))
+                {
+                    File.Delete(broken);
+                }
+            }
+            catch { }
+        }
         _tool = new YtDlpTool(_http, ToolsDirectory(host.DataDirectory), CustomYtDlp, host.Log);
         _importer = new YouTubeImporter(_tool, host.LibraryImport, _http, () => _state.DownloadFolder, FfmpegLocator.Find, host.Log);
         _view = host.RegisterView(this);

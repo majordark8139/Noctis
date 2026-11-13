@@ -14,19 +14,33 @@ namespace Noctis.Services.YouTube;
 public static partial class YtDlpParsing
 {
     public const string ReleaseBaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/";
+    public const string LegacyReleaseBaseUrl = "https://github.com/nicolaasjan/yt-dlp/releases/latest/download/";
+    public const string LatestReleaseApiUrl = "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest";
+    public const string LegacyLatestReleaseApiUrl = "https://api.github.com/repos/nicolaasjan/yt-dlp/releases/latest";
+
+    public static bool IsLegacyWindows() =>
+        OperatingSystem.IsWindows() && Environment.OSVersion.Version.Major < 10;
+
+    public static string GetReleaseBaseUrl(bool? isLegacyWindows = null) =>
+        (isLegacyWindows ?? IsLegacyWindows()) ? LegacyReleaseBaseUrl : ReleaseBaseUrl;
+
+    public static string GetLatestReleaseApiUrl(bool? isLegacyWindows = null) =>
+        (isLegacyWindows ?? IsLegacyWindows()) ? LegacyLatestReleaseApiUrl : LatestReleaseApiUrl;
 
     /// <summary>Official release asset for this OS/architecture.</summary>
-    public static string ReleaseAssetName(OSPlatform? platform = null, Architecture? arch = null)
+    public static string ReleaseAssetName(OSPlatform? platform = null, Architecture? arch = null, bool? isLegacyWindows = null)
     {
         var isWindows = platform is null ? OperatingSystem.IsWindows() : platform == OSPlatform.Windows;
         var isMac = platform is null ? OperatingSystem.IsMacOS() : platform == OSPlatform.OSX;
         var a = arch ?? RuntimeInformation.OSArchitecture;
-        if (isWindows) return "yt-dlp.exe";
+        var legacy = isLegacyWindows ?? IsLegacyWindows();
+        if (isWindows) return legacy ? "yt-dlp_win7.exe" : "yt-dlp.exe";
         if (isMac) return "yt-dlp_macos";
         return a == Architecture.Arm64 ? "yt-dlp_linux_aarch64" : "yt-dlp_linux";
     }
 
-    public static string ReleaseDownloadUrl() => ReleaseBaseUrl + ReleaseAssetName();
+    public static string ReleaseDownloadUrl(bool? isLegacyWindows = null) =>
+        GetReleaseBaseUrl(isLegacyWindows) + ReleaseAssetName(isLegacyWindows: isLegacyWindows);
 
     private static readonly Regex _youTubeUrlRegex = new(@"^(?:https?://)?(?:www\.|m\.|music\.)?(?:youtube\.com/(?:watch\?.*v=|shorts/|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})", RegexOptions.IgnoreCase | RegexOptions.Compiled);
     private static Regex YouTubeUrlRegex() => _youTubeUrlRegex;

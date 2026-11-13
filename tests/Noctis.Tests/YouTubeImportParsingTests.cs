@@ -135,11 +135,13 @@ public class YouTubeImportParsingTests
     [Fact]
     public void ReleaseAsset_PerPlatform()
     {
-        Assert.Equal("yt-dlp.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64));
+        Assert.Equal("yt-dlp.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64, isLegacyWindows: false));
+        Assert.Equal("yt-dlp_win7.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64, isLegacyWindows: true));
         Assert.Equal("yt-dlp_macos", YtDlpParsing.ReleaseAssetName(OSPlatform.OSX, Architecture.Arm64));
         Assert.Equal("yt-dlp_linux", YtDlpParsing.ReleaseAssetName(OSPlatform.Linux, Architecture.X64));
         Assert.Equal("yt-dlp_linux_aarch64", YtDlpParsing.ReleaseAssetName(OSPlatform.Linux, Architecture.Arm64));
-        Assert.StartsWith(YtDlpParsing.ReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl());
+        Assert.StartsWith(YtDlpParsing.ReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl(isLegacyWindows: false));
+        Assert.StartsWith(YtDlpParsing.LegacyReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl(isLegacyWindows: true));
     }
 
     [Fact]
@@ -185,6 +187,7 @@ public class YouTubeImportParsingTests
         Assert.Null(YtDlpParsing.ParseChecksum(new string('g', 64) + "  yt-dlp.exe", "yt-dlp.exe"));
         Assert.Null(YtDlpParsing.ParseChecksum(null, "yt-dlp.exe"));
         Assert.Null(YtDlpParsing.ParseChecksum("<html>rate limited</html>", "yt-dlp.exe"));
-        Assert.Equal("https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS", YtDlpParsing.ChecksumsUrl());
+        Assert.Equal("https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS", YtDlpParsing.ChecksumsUrl(isLegacyWindows: false));
+        Assert.Equal("https://github.com/nicolaasjan/yt-dlp/releases/latest/download/SHA2-256SUMS", YtDlpParsing.ChecksumsUrl(isLegacyWindows: true));
     }
 }

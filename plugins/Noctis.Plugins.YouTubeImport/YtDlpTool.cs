@@ -91,7 +91,12 @@ public sealed class YtDlpTool
         var configured = SafeTrim(_overridePath);
         if (configured.Length > 0 && File.Exists(configured)) return configured;
         if (File.Exists(InstalledPath)) return InstalledPath;
-        return FindOnPath(OperatingSystem.IsWindows() ? "yt-dlp.exe" : "yt-dlp");
+        if (OperatingSystem.IsWindows() && !YtDlpParsing.IsLegacyWindows())
+        {
+            var fallback = Path.Combine(ToolsDirectory, "yt-dlp.exe");
+            if (File.Exists(fallback)) return fallback;
+        }
+        return FindOnPath(OperatingSystem.IsWindows() ? (YtDlpParsing.IsLegacyWindows() ? "yt-dlp_win7.exe" : "yt-dlp.exe") : "yt-dlp");
     }
 
     public bool IsAvailable => Resolve() != null;
@@ -385,7 +390,7 @@ public sealed class YtDlpTool
 
     private async Task<string?> FetchLatestVersionAsync(CancellationToken ct)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, YtDlpParsing.LatestReleaseApiUrl);
+        using var request = new HttpRequestMessage(HttpMethod.Get, YtDlpParsing.GetLatestReleaseApiUrl());
         request.Headers.Accept.ParseAdd("application/vnd.github+json");
         using var response = await _http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();

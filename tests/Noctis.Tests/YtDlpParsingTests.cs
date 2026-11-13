@@ -47,10 +47,12 @@ public class YtDlpParsingTests
     [Fact]
     public void ReleaseAsset_PerPlatform()
     {
-        Assert.Equal("yt-dlp.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64));
+        Assert.Equal("yt-dlp.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64, isLegacyWindows: false));
+        Assert.Equal("yt-dlp_win7.exe", YtDlpParsing.ReleaseAssetName(OSPlatform.Windows, Architecture.X64, isLegacyWindows: true));
         Assert.Equal("yt-dlp_macos", YtDlpParsing.ReleaseAssetName(OSPlatform.OSX, Architecture.Arm64));
         Assert.Equal("yt-dlp_linux", YtDlpParsing.ReleaseAssetName(OSPlatform.Linux, Architecture.X64));
         Assert.Equal("yt-dlp_linux_aarch64", YtDlpParsing.ReleaseAssetName(OSPlatform.Linux, Architecture.Arm64));
-        Assert.StartsWith(YtDlpParsing.ReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl());
+        Assert.StartsWith(YtDlpParsing.ReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl(isLegacyWindows: false));
+        Assert.StartsWith(YtDlpParsing.LegacyReleaseBaseUrl, YtDlpParsing.ReleaseDownloadUrl(isLegacyWindows: true));
     }
 }
