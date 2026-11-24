@@ -15,7 +15,6 @@ using Noctis.Models;
 using Noctis.Plugins;
 using Noctis.Services.Plugins;
 using Noctis.ViewModels;
-using Stopwatch = Noctis.Helpers.Stopwatch;
 
 namespace Noctis.Controls;
 
@@ -73,7 +72,7 @@ public static class PluginLyricLines
     /// fails the renderer, as a slow callback stops any plugin (<see cref="PluginHost.Guard"/>).</summary>
     internal static TimeoutException? Overran(PluginLyricsRenderer renderer, string what, long started)
     {
-        var elapsed = Stopwatch.GetElapsedTime(started);
+        var elapsed = Noctis.Helpers.Stopwatch.GetElapsedTime(started);
         return elapsed <= renderer.Host.CallbackBudget
             ? null
             : new TimeoutException($"{what} blocked Noctis for {(long)elapsed.TotalMilliseconds} ms.");

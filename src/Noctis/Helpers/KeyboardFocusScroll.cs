@@ -21,7 +21,7 @@ public static class KeyboardFocusScroll
         viewer.AddHandler(InputElement.GotFocusEvent, OnGotFocus, RoutingStrategies.Bubble, handledEventsToo: true);
     }
 
-    private static void OnGotFocus(object? sender, FocusChangedEventArgs e)
+    private static void OnGotFocus(object? sender, GotFocusEventArgs e)
     {
         if (e.NavigationMethod is NavigationMethod.Tab or NavigationMethod.Directional && e.Source is Control focused)
             focused.BringIntoView();
