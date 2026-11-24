@@ -807,7 +807,11 @@ internal sealed partial class NoctisServerClient : IDisposable
         {
             // A streamed answer is not capped by MaxResponseContentBufferSize (that holds for
             // buffered sends only), and an error envelope is a few hundred bytes.
+#if NET8_0_OR_GREATER
             await response.Content.LoadIntoBufferAsync(MaxErrorEnvelopeBytes, token).ConfigureAwait(false);
+#else
+            await response.Content.LoadIntoBufferAsync(MaxErrorEnvelopeBytes).WaitAsync(token).ConfigureAwait(false);
+#endif
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException
                                    || (ex is OperationCanceledException && !callerToken.IsCancellationRequested))

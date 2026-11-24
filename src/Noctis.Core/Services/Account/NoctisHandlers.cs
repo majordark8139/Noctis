@@ -20,7 +20,11 @@ public static class NoctisHandlers
             {
                 null => false,
                 X509Certificate2 c2 => acceptCertificate(c2),
+#if NET9_0_OR_GREATER
                 _ => acceptCertificate(X509CertificateLoader.LoadCertificate(cert.GetRawCertData())),
+#else
+                _ => acceptCertificate(new X509Certificate2(cert.GetRawCertData())),
+#endif
             },
         },
         PooledConnectionLifetime = TimeSpan.FromMinutes(5),
