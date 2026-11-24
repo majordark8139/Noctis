@@ -1637,9 +1637,12 @@ public sealed class PluginHost
         var slash = key.IndexOf('/');
         if (slash is <= 0 or > 100 || slash == key.Length - 1) return false;
         for (var i = 0; i < slash; i++)
-            if (!(char.IsAsciiLetterOrDigit(key[i]) || key[i] is '.' or '-' or '_')) return false;
+            if (!(IsAsciiAlphanumeric(key[i]) || key[i] is '.' or '-' or '_')) return false;
         var name = key[(slash + 1)..];
         return string.Equals(CleanLyricsRendererName(name), name, StringComparison.Ordinal);
+
+        static bool IsAsciiAlphanumeric(char c) =>
+            c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9');
     }
 
     /// <summary>The key as stored: itself when valid, else "" (Noctis's own lines).</summary>

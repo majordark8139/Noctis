@@ -88,7 +88,7 @@ public static class ScriptLanguage
             {
                 if (c < 0x0080)
                 {
-                    if (char.IsAsciiLetter(c)) latin++;
+                    if (c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z')) latin++;
                     continue;
                 }
                 if (c <= 0x024F || c is >= (char)0x1E00 and <= (char)0x1EFF)
