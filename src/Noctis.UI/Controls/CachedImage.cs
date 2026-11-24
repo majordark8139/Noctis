@@ -395,7 +395,7 @@ public class CachedImage : Image
         try
         {
             if (CheckAccess()) SetSource(null);
-            else Dispatcher.Post(() => SetSource(null));
+            else Dispatcher.UIThread.Post(() => SetSource(null));
         }
         catch { /* that session's dispatcher has shut down */ }
     }
