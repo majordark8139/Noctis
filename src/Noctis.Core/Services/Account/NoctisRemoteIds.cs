@@ -63,7 +63,7 @@ public static class NoctisRemoteIds
     {
         if (s.Length != 32) return false;
         foreach (var c in s)
-            if (!char.IsAsciiHexDigit(c)) return false;
+            if (!(c is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F'))) return false;
         return true;
     }
 }

@@ -1,4 +1,5 @@
 using System.Net.Http;
+using Noctis.Localization;
 
 namespace Noctis.Services.MediaServer;
 
@@ -38,11 +39,11 @@ public sealed class MediaServerConnectResult
     public bool Success { get; init; }
     public MediaServerError Error { get; init; }
 
-    /// <summary>Human-readable status ("Connected", "Wrong username or password", …). Never contains secrets.</summary>
+    /// <summary>Human-readable status ("Connected", "Wrong username or password", …), in the app's language. Never contains secrets.</summary>
     public string Message { get; init; } = string.Empty;
 
-    public static MediaServerConnectResult Ok(string message = "Connected") =>
-        new() { Success = true, Error = MediaServerError.None, Message = message };
+    public static MediaServerConnectResult Ok(string? message = null) =>
+        new() { Success = true, Error = MediaServerError.None, Message = message ?? Loc.T("Settings.Server.Connected") };
 
     public static MediaServerConnectResult Fail(MediaServerError error, string message) =>
         new() { Success = false, Error = error, Message = message };
@@ -58,15 +59,24 @@ public sealed class MediaServerConnectResult
     {
         var message = ex switch
         {
+#if NET8_0_OR_GREATER
+            HttpRequestException { HttpRequestError: HttpRequestError.NameResolutionError } =>
+                Loc.T("Settings.Server.NameNotFound"),
+            HttpRequestException { HttpRequestError: HttpRequestError.ConnectionError } =>
+                Loc.T("Settings.Server.Refused"),
+            HttpRequestException { HttpRequestError: HttpRequestError.SecureConnectionError } =>
+                Loc.T("Settings.Server.SecureFailed"),
+#else
             HttpRequestException { InnerException: System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.HostNotFound } } =>
-                "Server address not found. Check the URL (and that this machine can resolve it).",
+                Loc.T("Settings.Server.NameNotFound"),
             HttpRequestException { InnerException: System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.ConnectionRefused } } =>
-                "The server refused the connection. Check the port and that the server is running.",
+                Loc.T("Settings.Server.Refused"),
             HttpRequestException { InnerException: System.Security.Authentication.AuthenticationException } =>
-                "Secure connection failed. The server may not support https, or its certificate isn't trusted.",
+                Loc.T("Settings.Server.SecureFailed"),
+#endif
             OperationCanceledException =>
-                "The server didn't respond. Check the address and that the server is running.",
-            _ => "Couldn't reach the server. Check the URL and that the server is running."
+                Loc.T("Settings.Server.NoResponse"),
+            _ => Loc.T("Settings.Server.Unreachable")
         };
         return Fail(MediaServerError.Unreachable, message);
     }

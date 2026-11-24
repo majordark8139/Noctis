@@ -125,7 +125,9 @@ internal sealed partial class NoctisServerClient : IDisposable
     /// <summary>The 32 bytes of an "AB:CD:…" fingerprint (separators and case are ignored).</summary>
     public static byte[] ParseFingerprint(string? fingerprint)
     {
-        var hex = new string((fingerprint ?? string.Empty).Where(char.IsAsciiHexDigit).ToArray());
+        var hex = new string((fingerprint ?? string.Empty)
+            .Where(static c => c is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F'))
+            .ToArray());
         var stripped = (fingerprint ?? string.Empty).Replace(":", "").Replace(" ", "");
         if (hex.Length != 64 || stripped.Length != 64)
             throw new NoctisServerException(NoctisErrorKind.CertificateChanged, "The certificate fingerprint is not valid.");
@@ -329,7 +331,7 @@ internal sealed partial class NoctisServerClient : IDisposable
         if (!NoctisRemoteIds.TryParseServerId(Str(e, "id"), "tr-", out var id)) return null;
         Guid? albumId = NoctisRemoteIds.TryParseServerId(Str(e, "albumId") ?? Str(e, "parent"), "al-", out var al) ? al : null;
         var suffix = (Str(e, "suffix") ?? string.Empty).Trim().ToLowerInvariant();
-        if (suffix.Length > 8 || !suffix.All(char.IsAsciiLetterOrDigit)) suffix = string.Empty;
+        if (suffix.Length > 8 || !suffix.All(static c => c is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or (>= '0' and <= '9'))) suffix = string.Empty;
         return new RemoteSong(
             id, albumId,
             Cap(Str(e, "title"), MaxStringLength) ?? string.Empty,
@@ -845,6 +847,10 @@ internal sealed partial class NoctisServerClient : IDisposable
         0 when what == PairSignInMethod => new(NoctisErrorKind.Outdated, "This desktop's Noctis is too old to sign in by QR code. Update it."),
         40 or 41 when signingIn => new(NoctisErrorKind.BadCredentials, "Wrong user name or password."),
         70 when what == "download" => new(NoctisErrorKind.FileMissing, "This song's file is missing on your computer."),
+        // The remote (getNoctisRemote / noctisRemoteControl): a computer from before it answers
+        // "Unknown method" (0); 50 is a computer without a player, or a phone of another account.
+        0 when what is RemoteStateMethod or RemoteControlMethod => new(NoctisErrorKind.Outdated, "This computer's Noctis is too old for the remote. Update it."),
+        50 when what is RemoteStateMethod or RemoteControlMethod => new(NoctisErrorKind.RemoteNotAllowed, "This computer does not let this phone control its player."),
         40 or 41 => new(NoctisErrorKind.SignedOut, "This phone was signed out on the desktop. Sign in again."),
         50 => new(NoctisErrorKind.SyncDisabled, "Sync is turned off on the desktop (Settings → Account & Devices)."),
         _ => new(NoctisErrorKind.Server, $"The server refused the request (error {code})."),
@@ -862,8 +868,10 @@ internal sealed partial class NoctisServerClient : IDisposable
     /// HttpRequestError, Android's handler wraps Java's UnknownHostException / SSLException.</summary>
     internal static NoctisServerException ConnectFailure(HttpRequestException ex)
     {
+#if NET8_0_OR_GREATER
         if (ex.HttpRequestError == HttpRequestError.NameResolutionError) return UnknownHost();
         if (ex.HttpRequestError == HttpRequestError.SecureConnectionError) return NotNoctis();
+#endif
         for (Exception? e = ex.InnerException; e != null; e = e.InnerException)
         {
             if (e is System.Net.Sockets.SocketException { SocketErrorCode: System.Net.Sockets.SocketError.HostNotFound or System.Net.Sockets.SocketError.NoData }
