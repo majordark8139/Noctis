@@ -3,6 +3,7 @@ name: Build Windows 7 SP1 x64
 on:
   push:
     branches:
+      - feat/win7-lossless-v1.7.1
       - feat/win7-lossless-v1.6.9
       - feat/win7-lossless-v1.6.8
       - feat/win7-lossless-v1.6.7
