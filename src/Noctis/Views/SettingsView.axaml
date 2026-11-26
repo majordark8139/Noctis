@@ -6480,7 +6480,7 @@
                         <TextBox Grid.Column="0" Classes="settings-search"
                                  AutomationProperties.Name="{loc:T Settings.AddGenreSeparatorEG}"
                                  Text="{Binding NewGenreSeparator, Mode=TwoWay}"
-                                 PlaceholderText="{loc:T Settings.AddGenreSeparatorEG}"
+                                 Watermark="{loc:T Settings.AddGenreSeparatorEG}"
                                  Padding="14,6"
                                  MaxWidth="320" HorizontalAlignment="Left" MinWidth="220">
                             <TextBox.KeyBindings>

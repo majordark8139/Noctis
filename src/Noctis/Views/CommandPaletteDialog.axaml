@@ -57,7 +57,7 @@
                 <TextBox x:Name="QueryBox"
                          Classes="pill-field"
                          Text="{Binding Query, Mode=TwoWay}"
-                         PlaceholderText="{loc:T CommandPalette.SearchSongsAlbumsArtists}"
+                         Watermark="{loc:T CommandPalette.SearchSongsAlbumsArtists}"
                          AutomationProperties.Name="{loc:T CommandPalette.SearchSongsAlbumsArtists}"
                          FontSize="15"
                          Margin="14,14,14,12"/>
