@@ -1,5 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -193,15 +195,6 @@ public class BlurredBackdrop : Panel
             RenderOptions.SetBitmapInterpolationMode(_bands[i], BitmapInterpolationMode.HighQuality);
             _standIn.Children.Add(_bands[i]);
         }
-        _blurSource = new BandFrame { HorizontalAlignment = HorizontalAlignment.Stretch, VerticalAlignment = VerticalAlignment.Stretch };
-        _blurrer = new Border { HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top, Child = _blurSource };
-        _blurHost = new Panel
-        {
-            Width = 0, Height = 0, ClipToBounds = true, IsHitTestVisible = false,
-            HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Top,
-            Children = { _blurrer },
-        };
-        Children.Add(_blurHost);
         Children.Add(_fadingOut);
         Children.Add(_image);
         Children.Add(_standIn);
@@ -669,17 +662,9 @@ public class BlurredBackdrop : Panel
     /// <summary>The bands the stand-in is drawn in: the area of this layer outside <see cref="Hole"/>.</summary>
     private readonly BandFrame[] _bands;
     private readonly Panel _standIn;
-    /// <summary>Blurs a low-resolution render of Target: drawn into <see cref="_blurrer"/> with a
-    /// BlurEffect and rendered on its own. Kept in a clipped 0×0 host, so it never reaches the screen
-    /// and its changes repaint nothing.</summary>
-    private readonly Panel _blurHost;
-    private readonly Border _blurrer;
-    private readonly BandFrame _blurSource;
     private readonly ChangeProbe _probe;
 
     private bool _clippedTarget, _targetClipWasSet, _targetClipWas;
-    private bool _hostHidden, _hostOpacityWasSet;
-    private double _hostOpacityWas = 1;
     private bool _standingIn;
     private Task? _entering;
     private Task? _retaking;
@@ -697,7 +682,7 @@ public class BlurredBackdrop : Panel
     internal int StandInEntries { get; private set; }
     internal int RetakeCount { get; private set; }
     internal BandFrame[] Bands => _bands;
-    internal bool IsTargetHostHidden => _hostHidden;
+    internal bool IsTargetHostHidden => false;
 
     /// <summary>
     /// Owner 11-14/15: Settings over the live blur was choppy, scrolling or not. Avalonia repaints a
@@ -757,7 +742,7 @@ public class BlurredBackdrop : Panel
             // The first frame is Target rendered with its live effect, at the stand-in's scale: the
             // effect works in layout units, so it blurs exactly as much there.
             frame = await visual.Compositor.CreateCompositionVisualSnapshot(visual, scale);
-            if (epoch != _standInEpoch || !CanStandIn) return;
+            if (epoch != _standInEpoch || !CanStandIn || frame is null || frame.PixelSize.Width < 1 || frame.PixelSize.Height < 1) return;
             _standInScale = scale;
             _standInTargetSize = target.Bounds.Size;
             ShowStandInFrame(frame);
@@ -795,7 +780,6 @@ public class BlurredBackdrop : Panel
         UpdateLiveEffect();
         _standIn.IsVisible = false;
         foreach (var band in _bands) band.Source = null;
-        _blurSource.Source = null;
         FreeLater(ref _standInFrame);
     }
 
@@ -843,33 +827,42 @@ public class BlurredBackdrop : Panel
         if (epoch == _standInEpoch) _trailingQueued = false;
     }
 
-    /// <summary>Renders Target (no effect now) at the stand-in's scale, blurs that render through
-    /// <see cref="_blurrer"/> at the same resolution, and shows the result.</summary>
+    /// <summary>Renders Target (no effect now) at the stand-in's scale and blurs that render offscreen
+    /// with SkiaSharp (no hidden 0x0 visual tree needed), keeping the backdrop opaque.</summary>
     private async Task RetakeOnceAsync(int epoch)
     {
-        Bitmap? raw = null, blurred = null;
+        Bitmap? raw = null;
         try
         {
             if (Target is not { } target || ElementComposition.GetElementVisual(target) is not { } visual) return;
             var scale = StandInScale();
             if (!(scale > 0) || LiveSigma() is not { } sigma) return;
             raw = await visual.Compositor.CreateCompositionVisualSnapshot(visual, scale);
-            if (epoch != _standInEpoch) return;
+            if (epoch != _standInEpoch || raw is null || raw.PixelSize.Width < 1 || raw.PixelSize.Height < 1) return;
+
             var px = raw.PixelSize;
-            _blurrer.Width = px.Width;
-            _blurrer.Height = px.Height;
-            // The live effect's sigma, in pixels of this render (Skia: sigma = 0.288675 R + 0.5).
-            var lowSigma = sigma.Sigma * scale / sigma.DeviceScale;
-            _blurrer.Effect = new ImmutableBlurEffect(Math.Max(0, (lowSigma - 0.5) / 0.288675));
-            _blurSource.Source = raw;
-            _blurSource.SourceRect = new Rect(0, 0, px.Width, px.Height);
-            _blurHost.UpdateLayout();
-            if (ElementComposition.GetElementVisual(_blurrer) is not { } blurVisual) return;
-            blurred = await blurVisual.Compositor.CreateCompositionVisualSnapshot(blurVisual, 1);
-            if (epoch != _standInEpoch) return;
+            byte[] pngBytes;
+            using (var png = new MemoryStream())
+            {
+                raw.Save(png);
+                pngBytes = png.ToArray();
+            }
+            raw.Dispose();
+            raw = null;
+
+            var blurSigma = (float)(sigma.Sigma * scale / sigma.DeviceScale);
+            var baseColor = TopLevel.GetTopLevel(this) is { } top ? BackdropSnapshot.OpaqueBaseColor(top) : Colors.Black;
+            var pixels = await Task.Run(() => BlurStandInPixels(pngBytes, px.Width, px.Height, blurSigma, baseColor));
+            if (epoch != _standInEpoch || pixels is null) return;
+
+            var blurred = new WriteableBitmap(px, new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
+            using (var fb = blurred.Lock())
+            {
+                for (var y = 0; y < px.Height; y++)
+                    Marshal.Copy(pixels, y * px.Width * 4, fb.Address + y * fb.RowBytes, px.Width * 4);
+            }
             _standInScale = scale;
             ShowStandInFrame(blurred);
-            blurred = null;
             RetakeCount++;
         }
         catch (Exception ex)
@@ -878,14 +871,36 @@ public class BlurredBackdrop : Panel
         }
         finally
         {
-            blurred?.Dispose();
-            if (raw is not null)
-            {
-                if (ReferenceEquals(_blurSource.Source, raw)) _blurSource.Source = null;
-                var r = raw;
-                Dispatcher.UIThread.Post(r.Dispose, DispatcherPriority.Background);
-            }
+            raw?.Dispose();
         }
+    }
+
+    private static byte[]? BlurStandInPixels(byte[] pngBytes, int width, int height, float blurSigma, Color baseColor)
+    {
+        using var src = SKImage.FromEncodedData(pngBytes);
+        if (src is null || width < 1 || height < 1) return null;
+        var info = new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Premul);
+        using var surface = SKSurface.Create(info);
+        if (surface is null) return null;
+        var canvas = surface.Canvas;
+        canvas.Clear(new SKColor(baseColor.R, baseColor.G, baseColor.B, 255));
+        using var filter = blurSigma > 0 ? SKImageFilter.CreateBlur(blurSigma, blurSigma, SKShaderTileMode.Clamp) : null;
+        using var paint = new SKPaint { ImageFilter = filter };
+        canvas.DrawImage(src, new SKRect(0, 0, width, height), paint);
+        canvas.Flush();
+
+        var pixels = new byte[width * height * 4];
+        var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            if (!surface.ReadPixels(info, handle.AddrOfPinnedObject(), width * 4, 0, 0))
+                return null;
+        }
+        finally
+        {
+            handle.Free();
+        }
+        return pixels;
     }
 
     /// <summary>Puts <paramref name="frame"/> (Target rendered at <see cref="_standInScale"/>) up in
@@ -980,21 +995,14 @@ public class BlurredBackdrop : Panel
         return rect.Width > 0 && rect.Height > 0 ? rect : default;
     }
 
-    /// <summary>Target's host is hidden while the stand-in shows, or while the opaque snapshot
-    /// (Liquid Glass on) covers it: nothing of it can show, so the compositor need not draw it.</summary>
+    /// <summary>
+    /// On Avalonia 11, hiding TargetHost via Opacity = 0 propagates EffectiveOpacity = 0 and
+    /// IsVisibleInFrame = false to Target, so subsequent CreateCompositionVisualSnapshot(Target)
+    /// retakes return empty transparent bitmaps and turn the Settings backdrop solid black.
+    /// Leaving TargetHost visible preserves live-blur removal (Target.Effect = null) and safe retakes.
+    /// </summary>
     private void ApplyHostHidden()
     {
-        var hide = TargetHost is not null && (_standingIn || IsOpaqueCover);
-        if (hide == _hostHidden || TargetHost is not { } host) return;
-        _hostHidden = hide;
-        if (hide)
-        {
-            _hostOpacityWasSet = host.IsSet(OpacityProperty);
-            _hostOpacityWas = host.Opacity;
-            host.Opacity = 0;
-        }
-        else if (_hostOpacityWasSet) host.Opacity = _hostOpacityWas;
-        else host.ClearValue(OpacityProperty);
     }
 
     /// <summary>Device pixels per layout unit at Target: the window's scaling times any scale

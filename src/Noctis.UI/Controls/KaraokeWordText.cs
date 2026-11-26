@@ -249,24 +249,22 @@ public class KaraokeWordText : TextBlock
     }
 
     /// <summary>
-    /// The float moves the word's composition visual instead of being drawn into it (cells
-    /// following a <see cref="Word"/>, no plugin effect posing the words). S23 (11-23): each
-    /// quarter pixel of a rising word recorded the word's drawing again (a new draw list, its
-    /// resource table and glyph runs), most of what a sweeping line allocated per frame. The
-    /// screen is the same: the drawing is placed exactly as before, the offset added after it.
+    /// Disabled on Avalonia 11 (which lacks CompositionVisual.Translation; overwriting Offset on
+    /// a Layoutable would fight its arranged position). RenderTextLayout draws the float instead.
     /// </summary>
-    private bool LiftOnCompositor => _word != null && LyricsWordEffect.Current is null;
+    private bool LiftOnCompositor => false;
 
     // The offset ApplyLift last gave the composition visual.
     private double _appliedLift;
 
     private void ApplyLift()
     {
-        var y = LiftOnCompositor ? -LiftPixels() : 0;
+        if (!LiftOnCompositor) return;
+        var y = -LiftPixels();
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (y == _appliedLift || ElementComposition.GetElementVisual(this) is not { } visual) return;
         _appliedLift = y;
-        visual.Translation = new Vector3D(0, y, 0);
+        visual.Offset = new Vector3D(visual.Offset.X, y, visual.Offset.Z);
     }
 
     // Stops left unmoved while hidden.
@@ -643,7 +641,7 @@ public class KaraokeWordText : TextBlock
     private Point TextOrigin()
     {
         var scale = Avalonia.Layout.LayoutHelper.GetLayoutScale(this);
-        var padding = Avalonia.Layout.LayoutHelper.RoundLayoutThickness(Padding, scale);
+        var padding = Avalonia.Layout.LayoutHelper.RoundLayoutThickness(Padding, scale, scale);
         return new Point(padding.Left, padding.Top);
     }
 
@@ -673,7 +671,7 @@ public class KaraokeWordText : TextBlock
         var pose = EmphasisMotion.CharPose(EmphasisMs, letter.Index, _pieces.Count, EmphasisMotion.For(HeldDurationMs, IsLastInLine));
         visual.CenterPoint = new Vector3D(_letterOrigin.X + piece.X + piece.Width / 2, _letterOrigin.Y + _layoutHeight / 2, 0);
         visual.Scale = new Vector3D(pose.Scale, pose.Scale, 1);
-        visual.Translation = new Vector3D(pose.OffsetXEm * FontSize, pose.OffsetYEm * FontSize, 0);
+        visual.Offset = new Vector3D(pose.OffsetXEm * FontSize, pose.OffsetYEm * FontSize, 0);
     }
 
     /// <summary>A letter drawn again only when its drawing changes: its brush switches (the edge

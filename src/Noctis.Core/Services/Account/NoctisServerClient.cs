@@ -321,9 +321,12 @@ internal sealed partial class NoctisServerClient : IDisposable
     /// hex ticks). Lower-cased; null when absent or not that shape.</summary>
     internal static string? ParseCoverVersion(string? value)
     {
-        if (string.IsNullOrEmpty(value) || value.Length > 16 || !value.All(char.IsAsciiHexDigit)) return null;
+        if (string.IsNullOrEmpty(value) || value.Length > 16 || !value.All(IsAsciiHexDigit)) return null;
         return value.ToLowerInvariant();
     }
+
+    private static bool IsAsciiHexDigit(char c) =>
+        c is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F');
 
     /// <summary>A search3 album's noctisLinks: the albums whose songs it lists too, each once (a
     /// handful at most; junk skipped). Empty when absent (a computer from before it).</summary>
