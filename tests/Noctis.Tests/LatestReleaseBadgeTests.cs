@@ -91,7 +91,7 @@ public class LatestReleaseBadgeTests
     [InlineData("1.6.9.1", "1.6.9.1")]
     [InlineData("1.6.9.0", "1.6.9")]
     [InlineData("1.6.9", "1.6.9")]
-    [InlineData("1.7.3.1", "1.7.3.1")]
+    [InlineData("1.7.2.1", "1.7.2.1")]
     public void FormatVersion_PreservesPositiveRevisionForHotfixesAndBetas(string parsed, string expected)
         => Assert.Equal(expected, UpdateService.FormatVersion(Version.Parse(parsed)));
 
