@@ -288,7 +288,7 @@ public sealed class VideoBackdrop : Control, IVideoFeedConsumer
     }
 
     private void OnBetaConfigChanged(object? sender, EventArgs e)
-        => Dispatcher.UIThread.Post(Refresh);
+        => Dispatcher.UIThread.Post(() => Refresh());
 
     // Park the decoder while the window can't be seen; resume where it left off.
     private void OnHostMinimizedChanged()
