@@ -18,7 +18,7 @@
 > ### 📢 Fork Disclaimer & Upstream Attribution
 > This repository is a dedicated **Windows 7 SP1 (x64) & Bit-Perfect Lossless Edition** of Noctis, built upon **v1.6.7 and forwards**.
 >
-> - **Windows 7 Compatibility & Audio Upgrades**: This fork incorporates a self-contained .NET 6 backport, SkiaSharp per-pixel Aero Glass transparency rendering, Win32 round-rect border clipping, bundled LibVLC 3.0.21 x64 offline codecs, Deezer TLS 1.2 compatibility, extended interface scaling (down to 50%), and a dedicated **Bit-Perfect WASAPI Exclusive Mode** audio transport with dynamic DAC clock-locking and hardware lock release.
+> - **Windows 7 Compatibility & Audio Upgrades**: This fork incorporates a self-contained .NET 6 backport, SkiaSharp per-pixel Aero Glass transparency rendering, Win32 round-rect border clipping, bundled LibVLC 3.0.24 x64 offline codecs, Deezer TLS 1.2 compatibility, extended interface scaling (down to 50%), and a dedicated **Bit-Perfect WASAPI Exclusive Mode** audio transport with dynamic DAC clock-locking and hardware lock release.
 > - **Previous Versions (< 1.6.7) & Upstream Releases**: For all prior versions of Noctis (v1.0.0 through v1.6.6), upstream feature discussions, or official releases targeting Windows 10/11, macOS, and Linux, please visit the original upstream repository: [**heartached/Noctis**](https://github.com/heartached/Noctis).
 > - All credit for Noctis's design, original architecture, and UI concept belongs to the original author, [**heartached**](https://github.com/heartached).
 
@@ -68,7 +68,7 @@ https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/noctis-demo.m
 ### 🪟 Windows 7 SP1 (64-bit) — Bit-Perfect Lossless Edition
 
 For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable package from this repository:
-- 📦 **[Noctis-v1.6.9.2-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.6.9.2/Noctis-v1.6.9.2-Win7-x64.zip)** (from [Release v1.6.9.2](https://github.com/majordark8139/Noctis/releases/tag/v1.6.9.2))
+- 📦 **[Noctis-v1.7.2-Win7-x64.zip](https://github.com/majordark8139/Noctis/releases/download/v1.7.2/Noctis-v1.7.2-Win7-x64.zip)** (from [Release v1.7.2](https://github.com/majordark8139/Noctis/releases/tag/v1.7.2))
 
 > [!IMPORTANT]
 > **Updating from v1.6.7 or v1.6.8**: The in-app updater in builds v1.6.7 and v1.6.8 cannot self-update due to an upstream installer mismatch (older builds expected an installer `.exe` and fail when downloading `.zip` archives). 
@@ -83,7 +83,7 @@ For **Windows 7 SP1 (x64)**, download the dedicated self-contained portable pack
 - **Zero prerequisites**: Fully self-contained .NET 6 package — simply extract and run `Noctis.exe` with no .NET runtime or desktop frameworks required.
 - **Multichannel (5.1 & 7.1) Surround Sound**: Native surround sound routing directly to your AV receiver or surround soundcard over WASAPI.
 - **Native DSD Playback & Batch Conversion**: Hardware playback of `.dsf` and `.dff` files via `DsdPcmDecoder` synchronized directly into WASAPI Exclusive mode.
-- **Bundled LibVLC 3.0.21 x64**: Native offline audio decoding with full format coverage (FLAC, ALAC, WAV, APE, Opus, AAC, MP3) without system codec dependencies.
+- **Bundled LibVLC 3.0.24 x64**: Native offline audio decoding with full format coverage (FLAC, ALAC, WAV, APE, Opus, AAC, MP3) without system codec dependencies.
 - **SkiaSharp Per-Pixel Transparency**: Full Aero Glass integration with zero black box, white wedge, or window clipping artifacts.
 - **Bit-Perfect Audio**: Direct WASAPI Exclusive Mode transport directly to your DAC with auto sample-rate matching (44.1 kHz up to 192 kHz).
 - **Dedicated Stop Button**: Halts playback and immediately frees exclusive audio hardware locks for other apps.
