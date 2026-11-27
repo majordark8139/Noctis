@@ -448,6 +448,10 @@
               IsVisible="{Binding Player.ShowsLyricsBackgroundMedia}">
             <controls:VideoBackdrop x:Name="MediaBackdrop"
                                     Source="{Binding Player.LyricsBackgroundMediaPath}"
+                                    SyncPosition="{Binding Player.BackgroundVideoSyncPosition}"
+                                    Rate="{Binding Player.PlaybackRate}"
+                                    SyncLoopWithTrack="{Binding Player.BetaSeekBackgroundVideoWithSong}"
+                                    TrackEpoch="{Binding Player.VideoTrackEpoch}"
                                     IsPaused="{Binding Player.LyricsBackgroundHoldsWhilePaused}"
                                     IsActive="{Binding $self.IsVisible}" />
             <Rectangle Fill="#8C000000"/>

@@ -84,6 +84,7 @@ public partial class SettingsViewModel : ViewModelBase
     public const string TabLibrary = "Library";
     public const string TabShortcuts = "Shortcuts";
     public const string TabStatistics = "Statistics";
+    public const string TabBetaFeatures = "Beta Features";
     public const string TabIntegrations = "Integrations";
     public const string TabPlugins = "Plugins";
     public const string TabAbout = "About";
@@ -116,7 +117,7 @@ public partial class SettingsViewModel : ViewModelBase
             G("Playback", (TabAudio, "RailSpeakerIcon")),
             G("Library", (TabLibrary, "RailFolderIcon"), (TabAdvanced, "RailWrenchIcon")),
             G("Connect", (TabAccountDevices, "RailPersonIcon"), (TabIntegrations, "RailPlugIcon"), (TabPlugins, "RailPuzzleIcon")),
-            G("More", (TabStatistics, "RailStatsIcon"), (TabAbout, "RailInfoIcon")),
+            G("More", (TabStatistics, "RailStatsIcon"), (TabBetaFeatures, "RailBetaIcon"), (TabAbout, "RailInfoIcon")),
         };
         groups[0].Sections[0].IsSelected = true; // mirrors the TabGeneral default of SelectedSettingsTab
         return groups;
@@ -143,6 +144,8 @@ public partial class SettingsViewModel : ViewModelBase
     public bool IsLibraryTabSelected => SelectedSettingsTab == TabLibrary;
     public bool IsShortcutsTabSelected => SelectedSettingsTab == TabShortcuts;
     public bool IsStatisticsTabSelected => SelectedSettingsTab == TabStatistics;
+    public bool IsBetaFeaturesTabSelected => SelectedSettingsTab == TabBetaFeatures;
+    public bool IsBetaFeaturesTabVisible => IsBetaFeaturesTabSelected;
     public bool IsIntegrationsTabSelected => SelectedSettingsTab == TabIntegrations;
     public bool IsPluginsTabSelected => SelectedSettingsTab == TabPlugins;
     public bool IsPluginsTabVisible => IsPluginsTabSelected;
@@ -445,6 +448,8 @@ public partial class SettingsViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsLibraryTabVisible));
         OnPropertyChanged(nameof(IsShortcutsTabVisible));
         OnPropertyChanged(nameof(IsStatisticsTabVisible));
+        OnPropertyChanged(nameof(IsBetaFeaturesTabSelected));
+        OnPropertyChanged(nameof(IsBetaFeaturesTabVisible));
         OnPropertyChanged(nameof(IsIntegrationsTabVisible));
         OnPropertyChanged(nameof(IsAboutTabVisible));
         OnPropertyChanged(nameof(IsAccountDevicesTabSelected));
@@ -4082,6 +4087,7 @@ public partial class SettingsViewModel : ViewModelBase
             YouTubeMusicLyricsEnabled = _settings.YouTubeMusicLyricsEnabled;
             LoadFeatureSettings();
             LoadBuiltInFeatureSettings();
+            LoadBetaSettings(_settings);
 
             // Equalizer
             _suppressEqNotify = true;
@@ -4685,6 +4691,7 @@ public partial class SettingsViewModel : ViewModelBase
         _settings.AllowExplicitContent = AllowExplicitContent;
         SaveFeatureSettings();
         SaveBuiltInFeatureSettings();
+        SyncBetaSettings(_settings);
         _settings.BpmKeyAnalysisEnabled = BpmKeyAnalysisEnabled;
         _settings.WriteAnalysisToTags = WriteAnalysisToTags;
         _settings.AutoReplayGainScanEnabled = AutoReplayGainScanEnabled;
@@ -4980,6 +4987,7 @@ public partial class SettingsViewModel : ViewModelBase
         _player.LyricsShowRomanization = LyricsShowRomanization;
         _player.LyricsShowBackgroundVocals = LyricsShowBackgroundVocals;
         ApplyMarqueeSwitches();
+        ApplyBetaSettings();
     }
 
     /// <summary>
@@ -9297,6 +9305,7 @@ public partial class SettingsViewModel : ViewModelBase
             // _settings the same way LoadAsync does (ApplyAudioSettings below pushes upmix).
             LoadFeatureSettings();
             LoadBuiltInFeatureSettings();
+            LoadBetaSettings(_settings);
 
             // Lyrics providers
             LrcLibEnabled = true;
@@ -9920,7 +9929,7 @@ public partial class SettingsViewModel : ViewModelBase
         {
             LatestVersionTag = done.Tag;
             ShowWhatsNew = true;
-            UpdateStatusText = Loc.T("Settings.UpdatedTo", UpdateService.CurrentVersion.ToString(3));
+            UpdateStatusText = Loc.T("Settings.UpdatedTo", UpdateService.FormatVersion(UpdateService.CurrentVersion));
         }
         if (UpdateService.LaunchInstallNote is { } note)
         {
@@ -10128,9 +10137,9 @@ public partial class SettingsViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Version equality ignoring the assembly's 4th (revision) component.</summary>
-    private static bool IsSameVersion(Version a, Version b) =>
-        a.Major == b.Major && a.Minor == b.Minor && Math.Max(a.Build, 0) == Math.Max(b.Build, 0);
+    /// <summary>Normalized 4-part equality so 1.7.2 == 1.7.2.0 while 1.6.9.4 stays distinct from 1.6.9.1.</summary>
+    internal static bool IsSameVersion(Version a, Version b) =>
+        AutoUpdatePolicy.Normalize(a) == AutoUpdatePolicy.Normalize(b);
 
     private async Task RefreshReleasesAsync()
     {
@@ -10154,7 +10163,7 @@ public partial class SettingsViewModel : ViewModelBase
                 _allReleases.Add(new DevReleaseItem
                 {
                     TagName = release.Info.TagName,
-                    VersionDisplay = $"{release.Version.Major}.{release.Version.Minor}.{release.Version.Build}",
+                    VersionDisplay = UpdateService.FormatVersion(release.Version),
                     DateDisplay = release.PublishedAt?.ToLocalTime().ToString("MMM d, yyyy") ?? "",
                     IsPrerelease = release.Info.IsPrerelease,
                     IsCurrent = isCurrent,
@@ -10396,7 +10405,7 @@ public partial class SettingsViewModel : ViewModelBase
     private async Task CopyVersionInfoAsync()
     {
         var v = UpdateService.CurrentVersion;
-        var info = $"Noctis {v.Major}.{v.Minor}.{v.Build} — " +
+        var info = $"Noctis {UpdateService.FormatVersion(v)} — " +
                    $"{System.Runtime.InteropServices.RuntimeInformation.OSDescription} " +
                    $"({System.Runtime.InteropServices.RuntimeInformation.OSArchitecture})";
 

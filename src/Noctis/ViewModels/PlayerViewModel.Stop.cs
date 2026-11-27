@@ -62,6 +62,8 @@ public partial class PlayerViewModel
         Position = TimeSpan.Zero;
         PositionFraction = 0;
         PositionText = "0:00";
+        VideoTrackEpoch++;
+        Controls.VideoFeed.CancelPreload();
         RemainingTimeText = Duration > TimeSpan.Zero ? FormatTime(Duration) : "0:00";
         if (CurrentTrack?.RememberPlaybackPosition == true)
         {

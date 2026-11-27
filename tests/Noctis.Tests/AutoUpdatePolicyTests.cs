@@ -277,6 +277,13 @@ public class AutoUpdateLaunchActionTests
     }
 
     [Fact]
+    public void FourPartHotfix_PreservesRevisionWhenNormalizing()
+    {
+        Assert.Equal(LaunchAction.Install, Decide(Pending(to: "1.6.9.4"), current: new Version(1, 6, 9, 2)));
+        Assert.Equal(LaunchAction.Completed, Decide(Pending(to: "1.6.9.4"), current: new Version(1, 6, 9, 4)));
+    }
+
+    [Fact]
     public void OlderThanThisBuild_Discard_NeverDowngrades()
         => Assert.Equal(LaunchAction.Discard, Decide(Pending(to: "1.5.3")));
 

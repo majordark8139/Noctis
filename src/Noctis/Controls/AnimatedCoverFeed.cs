@@ -284,8 +284,11 @@ internal sealed class AnimatedCoverFeed
                     _player = player;
                     player.SetVideoFormat("RV32", RenderSize, RenderSize, Stride);
                     player.SetVideoCallbacks(_lockCb, null, _displayCb);
+                    var threadOption = BetaFeaturesConfig.SmartAnimatedCoverThreads
+                        ? $":avcodec-threads={BetaFeaturesConfig.RecommendedVideoDecoderThreads()}"
+                        : DecoderThreads;
                     using var media = new Media(SharedLibVlc.Instance, source, FromType.FromPath,
-                        ":no-audio", ":input-repeat=65535", DecoderThreads);
+                        ":no-audio", ":input-repeat=65535", threadOption);
                     player.Play(media);
                     DebugLogger.Info(DebugLogger.Category.Playback, "Cover.Play",
                         $"src={Path.GetFileName(source)} | consumers={consumers}");

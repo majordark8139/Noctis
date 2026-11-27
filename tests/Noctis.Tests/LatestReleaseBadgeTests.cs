@@ -85,4 +85,32 @@ public class LatestReleaseBadgeTests
         };
         Assert.Equal(expected, item.ShowInstalledBadge);
     }
+
+    [Theory]
+    [InlineData("1.6.9.4", "1.6.9.4")]
+    [InlineData("1.6.9.1", "1.6.9.1")]
+    [InlineData("1.6.9.0", "1.6.9")]
+    [InlineData("1.6.9", "1.6.9")]
+    [InlineData("1.7.2.1", "1.7.2.1")]
+    public void FormatVersion_PreservesPositiveRevisionForHotfixesAndBetas(string parsed, string expected)
+        => Assert.Equal(expected, UpdateService.FormatVersion(Version.Parse(parsed)));
+
+    [Fact]
+    public void HotfixReleases_StayDistinctInEqualityAndSorting()
+    {
+        var current = new Version(1, 6, 9, 4);
+        var releases = new[]
+        {
+            Release("v1.6.9"),
+            Release("v1.6.9.1"),
+            Release("v1.6.9.2"),
+            Release("v1.6.9.4"),
+        };
+
+        Assert.True(SettingsViewModel.IsSameVersion(Version.Parse("1.6.9.4"), current));
+        Assert.False(SettingsViewModel.IsSameVersion(Version.Parse("1.6.9.2"), current));
+        Assert.False(SettingsViewModel.IsSameVersion(Version.Parse("1.6.9.1"), current));
+        Assert.False(SettingsViewModel.IsSameVersion(Version.Parse("1.6.9"), current));
+        Assert.Equal("v1.6.9.4", UpdateService.PickLatestRelease(releases)!.Info.TagName);
+    }
 }

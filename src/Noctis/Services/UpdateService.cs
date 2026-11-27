@@ -29,27 +29,26 @@ public sealed class UpdateService
     public static Version CurrentVersion =>
         Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0);
 
+    /// <summary>Formats a version for display, keeping a positive 4th revision component for hotfixes.</summary>
+    public static string FormatVersion(Version v)
+    {
+        var build = Math.Max(0, v.Build);
+        return v.Revision > 0
+            ? $"{v.Major}.{v.Minor}.{build}.{v.Revision}"
+            : $"{v.Major}.{v.Minor}.{build}";
+    }
+
     /// <summary>Current version formatted for display, e.g. "Version 1.1.1".</summary>
     /// <summary>Header lines for the session log: product + version, then install source.</summary>
     public static string DescribeBuild()
     {
-        var v = CurrentVersion;
-        var verStr = v.Revision > 0 ? $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}" : $"{v.Major}.{v.Minor}.{v.Build}";
+        var verStr = FormatVersion(CurrentVersion);
         return $"Noctis {verStr}" + (IsPrereleaseBuild ? " (pre-release)" : "")
              + $"\nInstall source: {Source}"
              + (MacRosetta.IsTranslated == true ? "\nRunning under Rosetta 2: Intel (x64) build on Apple Silicon" : "");
     }
 
-    public static string CurrentVersionDisplay
-    {
-        get
-        {
-            var v = CurrentVersion;
-            return v.Revision > 0
-                ? $"Version {v.Major}.{v.Minor}.{v.Build}.{v.Revision}"
-                : $"Version {v.Major}.{v.Minor}.{v.Build}";
-        }
-    }
+    public static string CurrentVersionDisplay => $"Version {FormatVersion(CurrentVersion)}";
 
     /// <summary>
     /// True when THIS installed build is a pre-release. Detected from the
@@ -252,12 +251,13 @@ public sealed class UpdateService
             return null;
 
         // Candidate releases newer than the current build, highest version first.
+        var normalizedCurrent = AutoUpdatePolicy.Normalize(CurrentVersion);
         var candidates = releases
             .Where(r => !r.Draft && !string.IsNullOrEmpty(r.TagName))
             .Where(r => includePrereleases || !r.Prerelease)
             .Select(r => (Release: r, Version: ParseTag(r.TagName!)))
-            .Where(x => x.Version is not null && x.Version > CurrentVersion)
-            .OrderByDescending(x => x.Version)
+            .Where(x => x.Version is not null && AutoUpdatePolicy.Normalize(x.Version) > normalizedCurrent)
+            .OrderByDescending(x => AutoUpdatePolicy.Normalize(x.Version))
             .ToList();
 
         if (candidates.Count == 0)
@@ -358,7 +358,7 @@ public sealed class UpdateService
             });
         }
 
-        return items.OrderByDescending(i => i.Version).ToList();
+        return items.OrderByDescending(i => AutoUpdatePolicy.Normalize(i.Version)).ToList();
     }
 
     /// <summary>
@@ -368,7 +368,7 @@ public sealed class UpdateService
     /// a pre-release — GitHub shows no badge then either.
     /// </summary>
     internal static ReleaseListItem? PickLatestRelease(IEnumerable<ReleaseListItem> releases) =>
-        releases.Where(r => !r.Info.IsPrerelease).MaxBy(r => r.Version);
+        releases.Where(r => !r.Info.IsPrerelease).MaxBy(r => AutoUpdatePolicy.Normalize(r.Version));
 
     /// <summary>
     /// Pulls the warning text out of a GitHub release body's "[!WARNING]" admonition
@@ -942,9 +942,9 @@ public sealed class UpdateService
         state.Pending = new PendingInstall
         {
             Tag = update.TagName,
-            FromVersion = CurrentVersion.ToString(3),
-            // Normalized: a two-part tag ("v2.0") parses with Build -1, and ToString(3) throws on it.
-            ToVersion = AutoUpdatePolicy.Normalize(update.Version).ToString(3),
+            FromVersion = FormatVersion(CurrentVersion),
+            // Normalized so two-part or four-part versions stay unambiguous across relaunch.
+            ToVersion = FormatVersion(AutoUpdatePolicy.Normalize(update.Version)),
             InstallerPath = installerPath,
             Sha256 = sha,
             IsPrerelease = update.IsPrerelease,
