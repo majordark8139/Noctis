@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls;
@@ -33,7 +33,7 @@ namespace Noctis.Controls;
 /// Software-decoded (required for the callback path); GIF plays through LibVLC's
 /// image/avformat demuxers like any video.
 /// </summary>
-public sealed class VideoBackdrop : Control
+public sealed class VideoBackdrop : Control, IVideoFeedConsumer
 {
     public static readonly StyledProperty<string?> SourceProperty =
         AvaloniaProperty.Register<VideoBackdrop, string?>(nameof(Source));
@@ -129,9 +129,38 @@ public sealed class VideoBackdrop : Control
     }
 
     public const int SyncToleranceMs = 350;
+    public const int SmoothSyncToleranceMs = 80;
+
+    /// <summary>When true (Beta: Seek Background Video With Song), a clip shorter than the track loops cleanly
+    /// in phase with song position while seeking forward/back, and a longer clip stops when the track changes.</summary>
+    public static readonly StyledProperty<bool> SyncLoopWithTrackProperty =
+        AvaloniaProperty.Register<VideoBackdrop, bool>(nameof(SyncLoopWithTrack));
+    public bool SyncLoopWithTrack
+    {
+        get => GetValue(SyncLoopWithTrackProperty);
+        set => SetValue(SyncLoopWithTrackProperty, value);
+    }
+
+    /// <summary>Bumped on each new track start so loop-synced background videos seek back to 00:00 even
+    /// when two consecutive tracks use the same background clip.</summary>
+    public static readonly StyledProperty<int> TrackEpochProperty =
+        AvaloniaProperty.Register<VideoBackdrop, int>(nameof(TrackEpoch));
+    public int TrackEpoch
+    {
+        get => GetValue(TrackEpochProperty);
+        set => SetValue(TrackEpochProperty, value);
+    }
 
     /// <summary>What a sync request does to the clip.</summary>
     internal enum SyncAction { None, Seek, Restart }
+
+    internal readonly record struct SyncDecision(SyncAction Action, long TargetMs, double RateMultiplier);
+
+    internal static long EffectiveTargetMs(long targetMs, long lengthMs, bool loopWithTrack)
+    {
+        var clamped = Math.Max(0, targetMs);
+        return loopWithTrack && lengthMs > 0 ? clamped % lengthMs : clamped;
+    }
 
     /// <summary>
     /// A sync request against the clip's state: seek when it drifted past the tolerance (or
@@ -140,10 +169,62 @@ public sealed class VideoBackdrop : Control
     /// already past the clip's end (<paramref name="lengthMs"/>; 0 = unknown, never restart).
     /// </summary>
     internal static SyncAction PlanSync(bool ended, long timeMs, long targetMs, long lengthMs, int toleranceMs, bool force)
+        => PlanSync(ended, timeMs, targetMs, lengthMs, toleranceMs, force, loopWithTrack: false);
+
+    internal static SyncAction PlanSync(
+        bool ended, long timeMs, long targetMs, long lengthMs, int toleranceMs, bool force, bool loopWithTrack)
     {
+        var effective = EffectiveTargetMs(targetMs, lengthMs, loopWithTrack);
         if (ended)
-            return lengthMs > 0 && targetMs < lengthMs - toleranceMs ? SyncAction.Restart : SyncAction.None;
-        return force || Math.Abs(timeMs - targetMs) > toleranceMs ? SyncAction.Seek : SyncAction.None;
+        {
+            if (loopWithTrack && lengthMs > 0) return SyncAction.Restart;
+            return lengthMs > 0 && effective < lengthMs - toleranceMs ? SyncAction.Restart : SyncAction.None;
+        }
+        if (force) return SyncAction.Seek;
+
+        var diff = Math.Abs(timeMs - effective);
+        if (loopWithTrack && lengthMs > 0)
+            diff = Math.Min(diff, lengthMs - diff);
+
+        return diff > toleranceMs ? SyncAction.Seek : SyncAction.None;
+    }
+
+    internal static SyncDecision EvaluateSync(
+        bool ended, long timeMs, long targetMs, long lengthMs,
+        bool force, bool loopWithTrack, bool smoothSync, bool isPaused = false)
+    {
+        var effective = EffectiveTargetMs(targetMs, lengthMs, loopWithTrack);
+        if (ended)
+        {
+            var restart = (loopWithTrack && lengthMs > 0) ||
+                          (lengthMs > 0 && effective < lengthMs - (smoothSync ? SmoothSyncToleranceMs : SyncToleranceMs));
+            return new SyncDecision(restart ? SyncAction.Restart : SyncAction.None, effective, 1.0);
+        }
+
+        if (!smoothSync || isPaused)
+        {
+            var tolerance = smoothSync ? SmoothSyncToleranceMs : SyncToleranceMs;
+            var action = PlanSync(false, timeMs, targetMs, lengthMs, tolerance, force, loopWithTrack);
+            return new SyncDecision(action, effective, 1.0);
+        }
+
+        if (force)
+            return new SyncDecision(SyncAction.Seek, effective, 1.0);
+
+        var signedDiff = effective - timeMs;
+        if (loopWithTrack && lengthMs > 0)
+        {
+            if (signedDiff > lengthMs / 2) signedDiff -= lengthMs;
+            else if (signedDiff < -lengthMs / 2) signedDiff += lengthMs;
+        }
+
+        var absDiff = Math.Abs(signedDiff);
+        if (absDiff > 250)
+            return new SyncDecision(SyncAction.Seek, effective, 1.0);
+        if (absDiff > 60)
+            return new SyncDecision(SyncAction.None, effective, signedDiff > 0 ? 1.03 : 0.97);
+
+        return new SyncDecision(SyncAction.None, effective, 1.0);
     }
 
     /// <summary>Long-side cap for the decode buffer.</summary>
@@ -165,39 +246,119 @@ public sealed class VideoBackdrop : Control
         return (Math.Max(2, w), Math.Max(2, h));
     }
 
-    private Session? _session;
+    private VideoDecodeSession? _session;
+    private VideoFeed? _feed;
+    private WriteableBitmap? _bridgeFrame;
+    private string? _activeSource;
     private int _generation;
-    private WriteableBitmap? _current;   // frame currently painted (owned by the session)
+    private WriteableBitmap? _current;   // frame currently painted (owned by the session, feed, or _bridgeFrame)
     private bool _currentDrawn;          // Render has picked _current up since it was set
     private readonly HostWindowWatch _hostWindow;
+    private bool _betaSubscribed;
 
     public VideoBackdrop()
     {
         ClipToBounds = true;
         // Created before the handlers below so it has found the window by the time they run.
         _hostWindow = new HostWindowWatch(this, OnHostMinimizedChanged);
-        AttachedToVisualTree += (_, _) => Refresh();
-        DetachedFromVisualTree += (_, _) => Teardown();
+        AttachedToVisualTree += (_, _) =>
+        {
+            SubscribeBeta();
+            Refresh();
+        };
+        DetachedFromVisualTree += (_, _) =>
+        {
+            UnsubscribeBeta();
+            Teardown(allowLinger: true);
+        };
     }
 
+    private void SubscribeBeta()
+    {
+        if (_betaSubscribed) return;
+        _betaSubscribed = true;
+        BetaFeaturesConfig.Changed += OnBetaConfigChanged;
+    }
+
+    private void UnsubscribeBeta()
+    {
+        if (!_betaSubscribed) return;
+        _betaSubscribed = false;
+        BetaFeaturesConfig.Changed -= OnBetaConfigChanged;
+    }
+
+    private void OnBetaConfigChanged(object? sender, EventArgs e)
+        => Dispatcher.UIThread.Post(Refresh);
+
     // Park the decoder while the window can't be seen; resume where it left off.
-    private void OnHostMinimizedChanged() => _session?.SetPaused(_hostWindow.IsMinimized || IsPaused);
+    private void OnHostMinimizedChanged()
+    {
+        var paused = _hostWindow.IsMinimized || IsPaused;
+        _session?.SetPaused(paused);
+        _feed?.UpdatePaused(paused);
+    }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
-        if (change.Property == SourceProperty || change.Property == IsActiveProperty)
-            Refresh();
+        if (change.Property == SourceProperty || change.Property == IsActiveProperty || change.Property == SyncLoopWithTrackProperty)
+        {
+            var sourceUnchanged = change.Property != SourceProperty;
+            Refresh(allowLingerOnDeactivate: sourceUnchanged);
+        }
         else if (change.Property == IsPausedProperty)
-            _session?.SetPaused(IsPaused || _hostWindow.IsMinimized);
+        {
+            var paused = IsPaused || _hostWindow.IsMinimized;
+            _session?.SetPaused(paused);
+            _feed?.UpdatePaused(paused);
+        }
+        else if (change.Property == TrackEpochProperty)
+        {
+            if (SyncLoopWithTrack && SyncPosition is { } pos)
+                SyncActiveTarget((long)pos.TotalMilliseconds, force: true);
+        }
         else if (change.Property == SyncPositionProperty)
         {
-            if (SyncPosition is { } pos) _session?.SyncTo((long)pos.TotalMilliseconds);
+            if (SyncPosition is { } pos)
+                SyncActiveTarget((long)pos.TotalMilliseconds, force: false);
+            else if (change.OldValue != null)
+                Refresh(allowLingerOnDeactivate: true); // transitioned from synced to free loop
         }
         else if (change.Property == RateProperty)
+        {
             _session?.SetRate(Rate);
+            _feed?.UpdateRate(Rate);
+        }
         else if (change.Property == StretchProperty || change.Property == CornerRadiusProperty)
             InvalidateVisual();
+    }
+
+    private void SyncActiveTarget(long targetMs, bool force)
+    {
+        var loopWithTrack = SyncLoopWithTrack;
+        var smooth = BetaFeaturesConfig.SmoothVideoSync;
+        _session?.SyncTo(targetMs, force, loopWithTrack, smooth, Rate);
+        _feed?.SyncTo(targetMs, force, loopWithTrack, smooth, Rate);
+    }
+
+    void IVideoFeedConsumer.OnFeedFrame(WriteableBitmap frame, bool hasVideoStream)
+    {
+        if (!ReferenceEquals(frame, _bridgeFrame))
+        {
+            var oldBridge = _bridgeFrame;
+            _bridgeFrame = null;
+            if (oldBridge != null)
+                Dispatcher.UIThread.Post(oldBridge.Dispose);
+        }
+        _current = frame;
+        _currentDrawn = false;
+        HasVideoStream = hasVideoStream;
+        InvalidateVisual();
+    }
+
+    void IVideoFeedConsumer.OnFeedNoVideoStream()
+    {
+        HasVideoStream = false;
     }
 
     public override void Render(DrawingContext context)
@@ -228,22 +389,49 @@ public sealed class VideoBackdrop : Control
         }
     }
 
-    private void Refresh()
+    private void Refresh(bool allowLingerOnDeactivate = false)
     {
         var source = Source;
         var active = IsActive && !string.IsNullOrEmpty(source) && File.Exists(source)
                      && this.IsAttachedToVisualTree();
-        Teardown();
-        if (!active || string.IsNullOrEmpty(source)) return;
+        var sameSource = !string.IsNullOrEmpty(source) && string.Equals(source, _activeSource, StringComparison.OrdinalIgnoreCase);
+        Teardown(allowLinger: allowLingerOnDeactivate && sameSource);
+        if (!active || string.IsNullOrEmpty(source))
+        {
+            _activeSource = null;
+            return;
+        }
+        _activeSource = source;
 
-        var generation = _generation;
         var startPaused = _hostWindow.IsMinimized || IsPaused;
-        var synced = SyncPosition != null;
+        var syncPos = SyncPosition;
+        var synced = syncPos != null;
+        var loopWithTrack = SyncLoopWithTrack;
+        var loopRepeat = !synced || loopWithTrack;
         var rate = Rate;
         var maxSide = MaxDecodeSide;
+
+        // Route through VideoFeed when stream sharing is active or a matching preloaded standby is ready.
+        if (BetaFeaturesConfig.ShareVideoStream ||
+            (BetaFeaturesConfig.PreloadNextVideo && VideoFeed.HasPreloaded(source)))
+        {
+            _feed = VideoFeed.Acquire(
+                source,
+                this,
+                maxSide,
+                loopRepeat,
+                startPaused,
+                rate,
+                syncPos,
+                loopWithTrack,
+                BetaFeaturesConfig.SmoothVideoSync);
+            return;
+        }
+
+        var generation = _generation;
         ThreadPool.QueueUserWorkItem(_ =>
         {
-            Session session;
+            VideoDecodeSession? session = null;
             var hasVideo = false;
             try
             {
@@ -260,7 +448,19 @@ public sealed class VideoBackdrop : Control
                     break;
                 }
                 var (bw, bh) = FitBuffer(vw, vh, maxSide);
-                session = new Session(this, bw, bh, probe.Duration);
+                session = new VideoDecodeSession(
+                    bw,
+                    bh,
+                    probe.Duration,
+                    bitmap =>
+                    {
+                        _current = bitmap;
+                        _currentDrawn = false;
+                        HasVideoStream = true;
+                        InvalidateVisual();
+                    },
+                    () => ReferenceEquals(_session, session),
+                    () => _current == null || _currentDrawn);
             }
             catch
             {
@@ -271,11 +471,11 @@ public sealed class VideoBackdrop : Control
 
             try
             {
-                // A synced music video plays once and follows the song; a backdrop loops.
-                // Its start position is applied once it is attached below.
-                using var media = !synced
-                    ? new Media(SharedLibVlc.Instance, source, FromType.FromPath, ":no-audio", ":input-repeat=65535")
-                    : new Media(SharedLibVlc.Instance, source, FromType.FromPath, ":no-audio");
+                var options = new List<string> { ":no-audio" };
+                if (loopRepeat) options.Add(":input-repeat=65535");
+                if (BetaFeaturesConfig.SmartAnimatedCoverThreads || BetaFeaturesConfig.SmoothVideoSync)
+                    options.Add($":avcodec-threads={BetaFeaturesConfig.RecommendedVideoDecoderThreads()}");
+                using var media = new Media(SharedLibVlc.Instance, source, FromType.FromPath, options.ToArray());
                 session.Player.Play(media);
                 if (synced) session.SetRate(rate);
                 if (startPaused) session.SetPaused(true);
@@ -302,162 +502,26 @@ public sealed class VideoBackdrop : Control
                 if (SyncPosition is { } now)
                 {
                     if (Rate != rate) session.SetRate(Rate); // speed moved while starting up
-                    session.SyncTo((long)now.TotalMilliseconds, force: true);
+                    session.SyncTo((long)now.TotalMilliseconds, force: true, SyncLoopWithTrack, BetaFeaturesConfig.SmoothVideoSync, Rate);
                 }
             });
         });
     }
 
-    private void Teardown()
+    private void Teardown(bool allowLinger = false)
     {
         _generation++;
         var session = _session;
+        var feed = _feed;
+        var bridge = _bridgeFrame;
         _session = null;
+        _feed = null;
+        _bridgeFrame = null;
         _current = null;
         session?.ShutDown();
+        feed?.Release(this, linger: allowLinger);
+        if (bridge != null)
+            Dispatcher.UIThread.Post(bridge.Dispose);
         InvalidateVisual();
-    }
-
-    private sealed class Session
-    {
-        private readonly VideoBackdrop _owner;
-        public readonly MediaPlayer Player;
-        private readonly int _stride;
-        private readonly int _bufferBytes;
-        private readonly IntPtr _buffer;
-        private readonly byte[] _scratch;
-        // Frames rotate through these. A bitmap that is on screen is never written again
-        // while the compositor can still draw it: the render thread repaints parts of the
-        // page on its own (the animating lyrics), and a frame written in place showed up
-        // in those parts one step before the rest of the page: a visible seam.
-        private readonly WriteableBitmap[] _bitmaps = new WriteableBitmap[3];
-        private int _nextBitmap;
-        private volatile bool _framePending;
-        private volatile bool _dead;
-        private volatile bool _paused;
-        private long _lengthMs;
-
-        // Delegates must stay alive for the player's lifetime (VLC keeps raw pointers).
-        private readonly MediaPlayer.LibVLCVideoLockCb _lockCb;
-        private readonly MediaPlayer.LibVLCVideoDisplayCb _displayCb;
-
-        public Session(VideoBackdrop owner, int width, int height, long lengthMs)
-        {
-            _owner = owner;
-            _lengthMs = lengthMs;
-            _stride = width * 4;
-            _bufferBytes = _stride * height;
-            _buffer = Marshal.AllocHGlobal(_bufferBytes);
-            _scratch = new byte[_bufferBytes];
-            for (var i = 0; i < _bitmaps.Length; i++)
-                _bitmaps[i] = new WriteableBitmap(new PixelSize(width, height), new Vector(96, 96),
-                    PixelFormat.Bgra8888, AlphaFormat.Opaque);
-            _lockCb = OnLock;
-            _displayCb = OnDisplay;
-            Player = new MediaPlayer(SharedLibVlc.Instance) { EnableHardwareDecoding = false, Mute = true };
-            Player.SetVideoFormat("RV32", (uint)width, (uint)height, (uint)_stride);
-            Player.SetVideoCallbacks(_lockCb, null, _displayCb);
-        }
-
-        public void SetPaused(bool paused)
-        {
-            if (_dead) return;
-            _paused = paused;
-            ThreadPool.QueueUserWorkItem(_ => { try { Player.SetPause(paused); } catch { } });
-        }
-
-        /// <summary>Plays the clip at <paramref name="rate"/> (clamped to VLC's sane range).</summary>
-        public void SetRate(double rate)
-        {
-            if (_dead || double.IsNaN(rate) || rate <= 0) return;
-            var r = (float)Math.Clamp(rate, 0.25, 4.0);
-            ThreadPool.QueueUserWorkItem(_ => { try { Player.SetRate(r); } catch { } });
-        }
-
-        private int _syncInFlight;
-
-        /// <summary>
-        /// Keeps the clip within <see cref="SyncToleranceMs"/> of the song. Reading and
-        /// setting the native time happens off the UI thread; at most one check runs at a
-        /// time so a busy position stream cannot queue seeks. An ended clip is restarted
-        /// (see <see cref="PlanSync"/>).
-        /// </summary>
-        public void SyncTo(long targetMs, bool force = false)
-        {
-            if (_dead) return;
-            if (Interlocked.CompareExchange(ref _syncInFlight, 1, 0) != 0) return;
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try
-                {
-                    var length = Player.Length;
-                    if (length > 0) _lengthMs = length; // 0 once ended — keep the last known
-                    switch (PlanSync(Player.State == VLCState.Ended, Player.Time, targetMs, _lengthMs, SyncToleranceMs, force))
-                    {
-                        case SyncAction.Seek:
-                            Player.Time = targetMs;
-                            break;
-                        case SyncAction.Restart:
-                            Player.Stop();
-                            Player.Play();
-                            Player.Time = targetMs;
-                            if (_paused) Player.SetPause(true);
-                            break;
-                    }
-                }
-                catch { }
-                finally { Interlocked.Exchange(ref _syncInFlight, 0); }
-            });
-        }
-
-        private IntPtr OnLock(IntPtr opaque, IntPtr planes)
-        {
-            Marshal.WriteIntPtr(planes, _buffer);
-            return _buffer;
-        }
-
-        private void OnDisplay(IntPtr opaque, IntPtr picture)
-        {
-            if (_framePending || _dead) return;
-            _framePending = true;
-            // Taken here, on VLC's thread, while the picture is complete: VLC starts writing
-            // the next one into the same buffer as soon as this callback returns.
-            Marshal.Copy(_buffer, _scratch, 0, _bufferBytes);
-            Dispatcher.UIThread.Post(() =>
-            {
-                try
-                {
-                    if (_dead || _owner._session != this) return;
-                    // The frame before this one has not been painted yet: keep it and drop
-                    // this one, so the bitmaps already on screen stay untouched.
-                    if (_owner._current != null && !_owner._currentDrawn) return;
-                    var bitmap = _bitmaps[_nextBitmap];
-                    _nextBitmap = (_nextBitmap + 1) % _bitmaps.Length;
-                    using (var fb = bitmap.Lock())
-                        Marshal.Copy(_scratch, 0, fb.Address, _bufferBytes);
-                    _owner._current = bitmap; // first real frame reveals the clip
-                    _owner._currentDrawn = false;
-                    _owner.HasVideoStream = true;
-                    _owner.InvalidateVisual();
-                }
-                finally { _framePending = false; }
-            }, DispatcherPriority.Render);
-        }
-
-        public void ShutDown()
-        {
-            if (_dead) return;
-            _dead = true;
-            ThreadPool.QueueUserWorkItem(_ =>
-            {
-                try { Player.Stop(); } catch { }
-#pragma warning disable CS8625
-                try { Player.SetVideoCallbacks(null, null, null); } catch { }
-#pragma warning restore CS8625
-                try { Player.Dispose(); } catch { }
-                Marshal.FreeHGlobal(_buffer);
-                Dispatcher.UIThread.Post(() => { foreach (var b in _bitmaps) b.Dispose(); });
-            });
-        }
     }
 }

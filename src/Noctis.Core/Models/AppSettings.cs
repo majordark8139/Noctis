@@ -1699,6 +1699,29 @@ public class AppSettings : IJsonOnDeserializing, IJsonOnDeserialized
     /// <summary>When true, computed BPM/key are also written to file tags (TBPM/TKEY). Off by default.</summary>
     public bool WriteAnalysisToTags { get; set; } = false;
 
+    // ── Beta Features (Settings → Beta Features; all default off for clean A/B testing) ──
+
+    /// <summary>Beta: preload and pre-seek the next track's Music Video / Lyrics Background Video.</summary>
+    public bool BetaPreloadNextVideo { get; set; } = false;
+
+    /// <summary>Beta: share one active video stream across Cover, Behind Lyrics, and Full-Screen views.</summary>
+    public bool BetaShareVideoStream { get; set; } = false;
+
+    /// <summary>Beta: tighter video start alignment (&lt;= 80 ms) and gentle playback rate clock nudges.</summary>
+    public bool BetaSmoothVideoSync { get; set; } = false;
+
+    /// <summary>Beta: start Lyrics Background Video from 00:00 with the song, seek with timeline, loop cleanly if shorter, and end with the song.</summary>
+    public bool BetaSeekBackgroundVideoWithSong { get; set; } = false;
+
+    /// <summary>Beta: pace PlaybackFileWarmer reads with HDD breathers, background I/O priority, and a 4 GB-safe RAM cap.</summary>
+    public bool BetaGentleHddFileCaching { get; set; } = false;
+
+    /// <summary>Beta: cap AnimatedCoverFeed decoder threads (2 instead of 4) to trim HEVC frame-buffer RAM while keeping full 600px quality and native FPS.</summary>
+    public bool BetaSmartAnimatedCoverThreads { get; set; } = false;
+
+    /// <summary>Beta: offload non-UI track-switch serialization and pool pixel buffers cleanly.</summary>
+    public bool BetaLowOverheadTrackSwitch { get; set; } = false;
+
     // ── Shortcuts ──
     /// <summary>
     /// Rebound keyboard shortcuts, keyed by <see cref="ShortcutAction"/> name with the

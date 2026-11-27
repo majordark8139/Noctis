@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Noctis.Services;
 
@@ -25,16 +27,45 @@ internal sealed class PlaybackFileWarmer : IDisposable
     /// <summary>Longer files (audiobooks, DSD albums in one file) are left alone: reading
     /// gigabytes to save a seek would push other things out of the cache.</summary>
     internal const long MaxBytes = 768L * 1024 * 1024;
+    internal const long GentleLowRamMaxBytes = 192L * 1024 * 1024;
+    internal const long LowRamThresholdBytes = 6L * 1024 * 1024 * 1024;
+    internal const int GentleDefaultDelayMs = 1000;
+    internal const int GentleChunkPauseMs = 20;
 
     private const int ChunkBytes = 1 << 20;
+    private const int ThreadModeBackgroundBegin = 0x00010000;
+    private const int ThreadModeBackgroundEnd = 0x00020000;
+
+    [DllImport("kernel32.dll")]
+    private static extern IntPtr GetCurrentThread();
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetThreadPriority(IntPtr hThread, int nPriority);
 
     private readonly object _gate = new();
     private CancellationTokenSource? _cts;
     private CancellationTokenSource? _skipDelay; // cancelled by StartNow: the pass reads at once
     private string? _path;
     private readonly int _startDelayMs;
+    private readonly bool? _gentleOverride;
 
-    internal PlaybackFileWarmer(int startDelayMs = StartDelayMs) => _startDelayMs = startDelayMs;
+    internal PlaybackFileWarmer(int startDelayMs = StartDelayMs, bool? gentleOverride = null)
+    {
+        _startDelayMs = startDelayMs;
+        _gentleOverride = gentleOverride;
+    }
+
+    private bool IsGentleMode => _gentleOverride ?? BetaFeaturesConfig.GentleHddFileCaching;
+
+    internal static long EffectiveMaxBytes(bool gentle, long totalAvailableMemoryBytes)
+    {
+        if (!gentle || totalAvailableMemoryBytes <= 0) return MaxBytes;
+        return totalAvailableMemoryBytes <= LowRamThresholdBytes ? GentleLowRamMaxBytes : MaxBytes;
+    }
+
+    internal static int EffectiveStartDelayMs(int configuredDelayMs, bool gentle) =>
+        gentle && configuredDelayMs <= 0 ? GentleDefaultDelayMs : configuredDelayMs;
 
     /// <summary>The read of the last file given to <see cref="Warm"/>; completed when nothing runs. For tests.</summary>
     internal Task Current { get; private set; } = Task.CompletedTask;
@@ -99,27 +130,58 @@ internal sealed class PlaybackFileWarmer : IDisposable
 
     private async Task ReadThrough(string path, CancellationToken ct, CancellationToken skipDelay)
     {
+        var gentle = IsGentleMode;
+        var delayMs = EffectiveStartDelayMs(_startDelayMs, gentle);
         try
         {
             Interlocked.Exchange(ref _bytesRead, 0);
-            try
+            if (delayMs > 0)
             {
-                using var wait = CancellationTokenSource.CreateLinkedTokenSource(ct, skipDelay);
-                await Task.Delay(_startDelayMs, wait.Token).ConfigureAwait(false);
+                try
+                {
+                    using var wait = CancellationTokenSource.CreateLinkedTokenSource(ct, skipDelay);
+                    await Task.Delay(delayMs, wait.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested) { /* StartNow */ }
             }
-            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { /* StartNow */ }
+            ct.ThrowIfCancellationRequested();
+
             var info = new FileInfo(path);
-            if (!info.Exists || info.Length > MaxBytes) return;
+            var maxBytes = EffectiveMaxBytes(gentle, GC.GetGCMemoryInfo().TotalAvailableMemoryBytes);
+            if (!info.Exists || info.Length > maxBytes) return;
+
+            if (gentle)
+            {
+                // Dedicated non-pooled thread so Windows THREAD_MODE_BACKGROUND_BEGIN/END
+                // stays strictly scoped to this read loop and never leaks onto the ThreadPool.
+                await Task.Factory.StartNew(
+                    () => ReadThroughGentleSync(path, skipDelay, ct),
+                    ct,
+                    TaskCreationOptions.LongRunning,
+                    TaskScheduler.Default).ConfigureAwait(false);
+                return;
+            }
 
             var started = Stopwatch.GetTimestamp();
             // Shared for everything: tag edits, moves and deletes of the playing file go on working.
             await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
                 FileShare.ReadWrite | FileShare.Delete, bufferSize: 1,
                 FileOptions.SequentialScan | FileOptions.Asynchronous);
-            var buffer = new byte[ChunkBytes];
-            int read;
-            while ((read = await stream.ReadAsync(buffer, ct).ConfigureAwait(false)) > 0)
-                Interlocked.Add(ref _bytesRead, read);
+            var pooled = BetaFeaturesConfig.LowOverheadTrackSwitch
+                ? ArrayPool<byte>.Shared.Rent(ChunkBytes)
+                : null;
+            try
+            {
+                var buffer = pooled ?? new byte[ChunkBytes];
+                int read;
+                while ((read = await stream.ReadAsync(buffer.AsMemory(0, ChunkBytes), ct).ConfigureAwait(false)) > 0)
+                    Interlocked.Add(ref _bytesRead, read);
+            }
+            finally
+            {
+                if (pooled != null)
+                    ArrayPool<byte>.Shared.Return(pooled);
+            }
 
             DebugLogger.Info(DebugLogger.Category.Playback, "FileWarm.Done",
                 $"file={Path.GetFileName(path)}, mb={BytesRead / (1024 * 1024)}, ms={Noctis.Helpers.Stopwatch.GetElapsedTime(started).TotalMilliseconds:0}");
@@ -128,6 +190,46 @@ internal sealed class PlaybackFileWarmer : IDisposable
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException)
         {
             // A file that cannot be read this way plays as before; nothing to report.
+        }
+    }
+
+    private void ReadThroughGentleSync(string path, CancellationToken skipDelay, CancellationToken ct)
+    {
+        var enteredBackgroundIo = false;
+        var buffer = ArrayPool<byte>.Shared.Rent(ChunkBytes);
+        try
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                try { enteredBackgroundIo = SetThreadPriority(GetCurrentThread(), ThreadModeBackgroundBegin); }
+                catch { enteredBackgroundIo = false; }
+            }
+
+            var started = Stopwatch.GetTimestamp();
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
+                FileShare.ReadWrite | FileShare.Delete, bufferSize: 1,
+                FileOptions.SequentialScan);
+            using var pauseTokenSource = CancellationTokenSource.CreateLinkedTokenSource(ct, skipDelay);
+
+            int read;
+            while (!ct.IsCancellationRequested && (read = stream.Read(buffer, 0, ChunkBytes)) > 0)
+            {
+                Interlocked.Add(ref _bytesRead, read);
+                if (!skipDelay.IsCancellationRequested)
+                    pauseTokenSource.Token.WaitHandle.WaitOne(GentleChunkPauseMs);
+            }
+
+            DebugLogger.Info(DebugLogger.Category.Playback, "FileWarm.Done",
+                $"file={Path.GetFileName(path)}, mb={BytesRead / (1024 * 1024)}, ms={Noctis.Helpers.Stopwatch.GetElapsedTime(started).TotalMilliseconds:0}, gentle=1");
+        }
+        finally
+        {
+            if (enteredBackgroundIo && OperatingSystem.IsWindows())
+            {
+                try { SetThreadPriority(GetCurrentThread(), ThreadModeBackgroundEnd); }
+                catch { }
+            }
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 

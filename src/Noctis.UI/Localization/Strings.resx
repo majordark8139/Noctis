@@ -3097,6 +3097,31 @@ The lines and their timings are dropped and an empty lyrics box opens for your o
   <data name="Settings.Tab.Integrations" xml:space="preserve"><value>Integrations</value><comment>Settings rail</comment></data>
   <data name="Settings.Tab.Plugins" xml:space="preserve"><value>Plugins</value><comment>Settings rail</comment></data>
   <data name="Settings.Tab.Statistics" xml:space="preserve"><value>Statistics</value><comment>Settings rail</comment></data>
+  <data name="Settings.Tab.BetaFeatures" xml:space="preserve"><value>Beta Features</value><comment>Settings rail</comment></data>
+  <data name="Settings.Desc.BetaFeatures" xml:space="preserve"><value>Experimental video, Win7 smoothness, and audio switches. All start off for clean testing.</value><comment>Settings page description</comment></data>
+  <data name="Settings.Section.BetaVideo" xml:space="preserve"><value>Video &amp; lyrics background</value><comment>Settings › Beta Features section</comment></data>
+  <data name="Settings.BetaPreloadNextVideo" xml:space="preserve"><value>Preload Next Video</value></data>
+  <data name="Settings.BetaPreloadNextVideoDesc" xml:space="preserve"><value>Pre-load and pre-seek the upcoming song's music video or lyrics background video before track handoff.</value></data>
+  <data name="Settings.BetaShareVideoStream" xml:space="preserve"><value>Keep One Video Stream Across Views</value></data>
+  <data name="Settings.BetaShareVideoStreamDesc" xml:space="preserve"><value>Reuse the active video decoder across Cover, Behind Lyrics, and Full-Screen views without reloading from disk.</value></data>
+  <data name="Settings.BetaSmoothVideoSync" xml:space="preserve"><value>Smooth Clock Drift Sync</value></data>
+  <data name="Settings.BetaSmoothVideoSyncDesc" xml:space="preserve"><value>Tighten startup sync alignment and smooth tiny drift with gentle speed nudges instead of seek jumps.</value></data>
+  <data name="Settings.BetaSeekBackgroundVideoWithSong" xml:space="preserve"><value>Seek Background Video With Song</value></data>
+  <data name="Settings.BetaSeekBackgroundVideoWithSongDesc" xml:space="preserve"><value>Start lyrics background videos at 00:00 with every song, seek forward and backward with the timeline, loop seamlessly if shorter, and end with the song.</value></data>
+  <data name="Settings.Section.BetaSmoothness" xml:space="preserve"><value>Win7 smoothness &amp; caching</value><comment>Settings › Beta Features section</comment></data>
+  <data name="Settings.BetaGentleHddCaching" xml:space="preserve"><value>Gentle Hard-Drive File Caching</value></data>
+  <data name="Settings.BetaGentleHddCachingDesc" xml:space="preserve"><value>Delay and pace song pre-caching at background disk priority with a 4 GB-safe RAM ceiling while keeping instant seeks.</value></data>
+  <data name="Settings.BetaSmartAnimatedCoverThreads" xml:space="preserve"><value>Smart Animated Cover Threads</value></data>
+  <data name="Settings.BetaSmartAnimatedCoverThreadsDesc" xml:space="preserve"><value>Use two decoder threads instead of four on animated covers to cut excess buffer RAM while keeping full 600px quality and FPS.</value></data>
+  <data name="Settings.BetaLowOverheadTrackSwitch" xml:space="preserve"><value>Low-Overhead Track Switch &amp; Pooled Buffers</value></data>
+  <data name="Settings.BetaLowOverheadTrackSwitchDesc" xml:space="preserve"><value>Offload background state serialization on track start and reuse temporary video frame scratch buffers.</value></data>
+  <data name="Settings.Section.BetaAudio" xml:space="preserve"><value>Next-gen audio engine (Beta 2)</value><comment>Settings › Beta Features section</comment></data>
+  <data name="Settings.BetaAudioComingSoon" xml:space="preserve"><value>Option A Audio Engine Swap</value></data>
+  <data name="Settings.BetaAudioComingSoonDesc" xml:space="preserve"><value>In-process LGPL FFmpeg decoders into NAudio/WASAPI, zero-glitch C# EQ, and true 24/32-bit direct output arrive in Beta 2.</value></data>
+  <data name="Settings.Section.BetaReset" xml:space="preserve"><value>Testing &amp; diagnostics</value><comment>Settings › Beta Features section</comment></data>
+  <data name="Settings.BetaResetAll" xml:space="preserve"><value>Reset Beta Toggles</value></data>
+  <data name="Settings.BetaResetAllDesc" xml:space="preserve"><value>Turn all Beta Features switches back off to return immediately to stock behavior.</value></data>
+  <data name="Settings.BetaResetButton" xml:space="preserve"><value>Turn All Off</value></data>
   <data name="Settings.Tab.About" xml:space="preserve"><value>About</value><comment>Settings rail</comment></data>
   <data name="Settings.Group.App" xml:space="preserve"><value>App</value><comment>Settings rail</comment></data>
   <data name="Settings.Group.Playback" xml:space="preserve"><value>Playback</value><comment>Settings rail</comment></data>

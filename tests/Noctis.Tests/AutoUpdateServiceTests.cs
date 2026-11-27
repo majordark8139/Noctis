@@ -177,7 +177,7 @@ public class AutoUpdateLaunchInstallTests : IDisposable
         Assert.False(s.Blocked);
         var p = s.Pending!;
         Assert.Equal(Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file))).ToLowerInvariant(), p.Sha256);
-        Assert.Equal(UpdateService.CurrentVersion.ToString(3), p.FromVersion);
+        Assert.Equal(UpdateService.FormatVersion(UpdateService.CurrentVersion), p.FromVersion);
         Assert.Equal("9.9.9", p.ToVersion);
         Assert.Equal(file, p.InstallerPath);
         Assert.True(p.IsPrerelease);
@@ -274,7 +274,7 @@ public class AutoUpdateLaunchInstallTests : IDisposable
     {
         var file = OwnedTempFile();
         var store = new AutoUpdateStore(_dir);
-        store.Save(new AutoUpdateState { Tag = "x", Failures = 1, Pending = Pending(file, UpdateService.CurrentVersion.ToString(3)) });
+        store.Save(new AutoUpdateState { Tag = "x", Failures = 1, Pending = Pending(file, UpdateService.FormatVersion(UpdateService.CurrentVersion)) });
 
         Assert.False(Service().TryInstallPendingUpdateAtLaunch(false, store, AutoUpdateMode.InstallAtLaunch));
 

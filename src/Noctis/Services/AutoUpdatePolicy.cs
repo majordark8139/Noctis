@@ -124,9 +124,11 @@ internal static class AutoUpdatePolicy
         @"^Noctis-Update-[0-9a-f]{8}(-Setup\.exe|\.dmg|\.AppImage|\.tar\.gz)$",
         RegexOptions.CultureInvariant);
 
-    /// <summary>Three-part version. Assembly versions are 4-part (1.5.4.0) while Version("1.5.4")
-    /// has Revision -1 and compares LESS than 1.5.4.0, so both sides go through here.</summary>
-    public static Version Normalize(Version v) => new(v.Major, v.Minor, Math.Max(0, v.Build));
+    /// <summary>Four-part version. Assembly versions fill Revision with 0 (1.5.4.0) while
+    /// three-part tags ("1.5.4") parse with Revision -1 and compare LESS without normalizing;
+    /// four-part hotfixes ("1.6.9.4") preserve Revision so hotfixes stay distinct.</summary>
+    public static Version Normalize(Version v) =>
+        new(v.Major, v.Minor, Math.Max(0, v.Build), Math.Max(0, v.Revision));
 
     public static AutoUpdateMode ResolveMode(
         bool isWindows, bool isMacOS, bool isLinux, InstallSource source,

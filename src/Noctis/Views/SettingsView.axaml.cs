@@ -392,6 +392,7 @@ public partial class SettingsView : UserControl
         (SettingsViewModel.TabIntegrations, "IntegrationsTabPanel"),
         (SettingsViewModel.TabPlugins, "PluginsTabPanel"),
         (SettingsViewModel.TabStatistics, "StatisticsTabPanel"),
+        (SettingsViewModel.TabBetaFeatures, "BetaFeaturesTabPanel"),
         (SettingsViewModel.TabAbout, "AboutTabPanel"),
     };
 

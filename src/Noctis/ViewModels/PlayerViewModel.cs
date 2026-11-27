@@ -184,9 +184,29 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         }
     }
 
+    /// <summary>Opt-in Beta switches mirrored from SettingsViewModel.</summary>
+    [ObservableProperty] private bool _betaPreloadNextVideo;
+    [ObservableProperty] private bool _betaShareVideoStream;
+    [ObservableProperty] private bool _betaSmoothVideoSync;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(BackgroundVideoSyncPosition))]
+    private bool _betaSeekBackgroundVideoWithSong;
+    [ObservableProperty] private bool _betaLowOverheadTrackSwitch;
+
+    /// <summary>Monotonically incremented each time a new track begins playback (so loop-synced
+    /// background videos reset cleanly to 00:00 even when two songs use the same clip).</summary>
+    [ObservableProperty] private int _videoTrackEpoch;
+
+    /// <summary>Lyrics background video sync target when BetaSeekBackgroundVideoWithSong is enabled,
+    /// otherwise null so MediaBackdrop loops freely as before.</summary>
+    public TimeSpan? BackgroundVideoSyncPosition =>
+        BetaSeekBackgroundVideoWithSong ? MusicVideoSyncPosition : null;
+
     partial void OnPositionChanged(TimeSpan value)
     {
         if (HasMusicVideo) OnPropertyChanged(nameof(MusicVideoSyncPosition));
+        if (BetaSeekBackgroundVideoWithSong && ShowsLyricsBackgroundMedia)
+            OnPropertyChanged(nameof(BackgroundVideoSyncPosition));
     }
 
     // ── Chapters (.m4b audiobooks, Discord Luwi): the current file's chapter marks, listed
@@ -306,6 +326,47 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         if (!_nextClipProbe.IsCompleted)
             return null;
         return ResolvePlayPath(next, _nextClipProbe.IsCompletedSuccessfully ? _nextClipProbe.Result : null);
+    }
+
+    private Guid _preloadedVideoTrackId;
+
+    private void PreloadVideoForNextTrack(Track nextTrack, long nextStartMs)
+    {
+        if (!BetaPreloadNextVideo || nextTrack.IsRemoteStream || string.IsNullOrWhiteSpace(nextTrack.FilePath))
+            return;
+        if (_preloadedVideoTrackId == nextTrack.Id)
+            return;
+        _preloadedVideoTrackId = nextTrack.Id;
+
+        var startMs = Math.Max(0, nextStartMs);
+        var musicVideoSide = IsWatchingMusicVideo ? 1920 : Controls.VideoBackdrop.MaxLongSide;
+        var checkMusicVideo = MusicVideosEnabled;
+        var mvBehindLyrics = MusicVideoAsBackground;
+        var bgPath = ResolveLyricsBackgroundFor(nextTrack);
+        var loopSyncedBg = BetaSeekBackgroundVideoWithSong;
+        var existingProbe = _nextClipProbeTrackId == nextTrack.Id && _nextClipProbe is { IsCompletedSuccessfully: true } p ? p.Result : null;
+        var probeNeeded = checkMusicVideo && existingProbe == null && _nextClipProbeTrackId != nextTrack.Id;
+
+        Task.Run(() =>
+        {
+            var mvPath = existingProbe;
+            if (mvPath == null && checkMusicVideo && (probeNeeded || _nextClipProbeTrackId != nextTrack.Id))
+                mvPath = Helpers.MusicVideoLocator.Find(nextTrack.FilePath);
+
+            var hasMv = !string.IsNullOrEmpty(mvPath);
+            var preloadBg = !string.IsNullOrEmpty(bgPath) && (!hasMv || !mvBehindLyrics);
+            if (!hasMv && !preloadBg) return;
+
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (CurrentTrack?.Id == nextTrack.Id) return;
+                if (UpNext.Count == 0 || UpNext[0].Id != nextTrack.Id) return;
+                if (hasMv)
+                    Controls.VideoFeed.Preload(mvPath, musicVideoSide, startMs, loopRepeat: false);
+                if (preloadBg)
+                    Controls.VideoFeed.Preload(bgPath, Controls.VideoBackdrop.MaxLongSide, loopSyncedBg ? startMs : 0, loopRepeat: true);
+            });
+        });
     }
 
     /// <summary>The next-song probe's answer for <paramref name="track"/>, taken once when it
@@ -2697,6 +2758,8 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         await _library.SaveAsync();
     }
 
+    private int _queueSaveDelayToken;
+
     public void SaveQueueStateInBackground()
     {
         QueueState state;
@@ -2723,6 +2786,28 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         {
             // Queue mutated mid-snapshot (off-thread caller) — the next event
             // will snapshot again.
+            return;
+        }
+
+        if (BetaLowOverheadTrackSwitch)
+        {
+            var token = Interlocked.Increment(ref _queueSaveDelayToken);
+            lock (_queueSaveLock)
+            {
+                _queueSaveChain = _queueSaveChain
+                    .ContinueWith(async _ =>
+                    {
+                        await Task.Delay(250).ConfigureAwait(false);
+                        if (Volatile.Read(ref _queueSaveDelayToken) != token) return;
+                        await _persistence.SaveQueueStateAsync(state).ConfigureAwait(false);
+                    }, TaskScheduler.Default)
+                    .Unwrap()
+                    .ContinueWith(t =>
+                    {
+                        if (t.IsFaulted && t.Exception?.GetBaseException() is { } ex)
+                            DebugLog.Write("Queue", $"Queue snapshot failed: {ex.GetType().Name}: {ex.Message}");
+                    }, TaskScheduler.Default);
+            }
             return;
         }
 
@@ -3483,6 +3568,7 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         _hasPendingSeekTarget = false;
         _autoMixAdvanceQueued = false;
         _autoMixPreparedTrackId = Guid.Empty;
+        _preloadedVideoTrackId = Guid.Empty;
         _autoMixCommitGuardUntilUtc = DateTime.UtcNow.AddSeconds(2);
         // A staged next song must start on exactly the path it was staged with (below).
         var prepared = _autoMixPreparedSnapshot;
@@ -3583,6 +3669,8 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
                 ? seekPos.TotalSeconds / track.Duration.TotalSeconds
                 : 0;
         }
+        VideoTrackEpoch++;
+        Controls.VideoFeed.CancelPreloadExcept(_resolvedMusicVideoPath, LyricsBackgroundMediaPath);
 
         _musicVideoAudioPath = string.Equals(playPath, track.FilePath, StringComparison.Ordinal) ? null : playPath;
         MusicVideoAudioLengthDiffers = false;
@@ -4539,6 +4627,7 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
                 _audioPlayer.CurrentSessionId,
                 nextPlayPath);
             _audioPlayer.PrepareNext(nextPlayPath, (long)plan.NextTrackStartPosition.TotalMilliseconds);
+            PreloadVideoForNextTrack(nextTrack, (long)plan.NextTrackStartPosition.TotalMilliseconds);
             // Prepared late (already inside the window): give the async prepare a
             // tick of head start rather than committing against a cold standby.
             if (position >= fadeStart)
@@ -4736,6 +4825,7 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
             _audioPlayer.PrepareNext(
                 nextPlayPath,
                 nextStartMs > 0 ? nextStartMs : -1);
+            PreloadVideoForNextTrack(nextTrack, nextStartMs > 0 ? nextStartMs : 0);
             // Prepared inside the handoff lead (a song shorter than it): the prepare runs
             // off this thread, so the advance waits for a later tick.
             return false;
@@ -4824,6 +4914,8 @@ public partial class PlayerViewModel : ViewModelBase, IDiscScratchTarget
         _autoMixTransitionArmedUntilUtc = DateTime.MinValue;
         _autoMixPreparedTrackId = Guid.Empty;
         _autoMixPreparedSnapshot = null;
+        _preloadedVideoTrackId = Guid.Empty;
+        Controls.VideoFeed.CancelPreload();
         _audioPlayer.CancelPreparedNext();
         if (hadPending || AutoMixTransitionMode != Noctis.Models.AutoMixTransitionMode.Crossfade)
             _audioPlayer.SetCrossfade(false, 6);

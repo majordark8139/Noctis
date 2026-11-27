@@ -9248,6 +9248,153 @@
             </Border>
             </StackPanel>
 
+            <StackPanel x:Name="BetaFeaturesTabPanel" Classes="tab-page" IsVisible="{Binding IsBetaFeaturesTabVisible}" Spacing="4">
+            <!-- Group 1: Video & Lyrics Background -->
+            <TextBlock Classes="section-title" Text="{loc:T Settings.Section.BetaVideo}" Margin="0,2,0,8"/>
+            <Border Classes="setting-card group-card">
+            <StackPanel>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaPreloadNextVideo}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaPreloadNextVideoDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaPreloadNextVideo}"
+                                          IsChecked="{Binding BetaPreloadNextVideo}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaShareVideoStream}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaShareVideoStreamDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaShareVideoStream}"
+                                          IsChecked="{Binding BetaShareVideoStream}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaSmoothVideoSync}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaSmoothVideoSyncDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaSmoothVideoSync}"
+                                          IsChecked="{Binding BetaSmoothVideoSync}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaSeekBackgroundVideoWithSong}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaSeekBackgroundVideoWithSongDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaSeekBackgroundVideoWithSong}"
+                                          IsChecked="{Binding BetaSeekBackgroundVideoWithSong}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            </StackPanel>
+            </Border>
+
+            <!-- Group 2: Win7 Smoothness & Caching -->
+            <TextBlock Classes="section-title" Text="{loc:T Settings.Section.BetaSmoothness}" Margin="0,16,0,8"/>
+            <Border Classes="setting-card group-card">
+            <StackPanel>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaGentleHddCaching}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaGentleHddCachingDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaGentleHddCaching}"
+                                          IsChecked="{Binding BetaGentleHddFileCaching}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaSmartAnimatedCoverThreads}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaSmartAnimatedCoverThreadsDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaSmartAnimatedCoverThreads}"
+                                          IsChecked="{Binding BetaSmartAnimatedCoverThreads}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaLowOverheadTrackSwitch}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaLowOverheadTrackSwitchDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <controls:LottieToggle Grid.Column="1"
+                                          AutomationProperties.Name="{loc:T Settings.BetaLowOverheadTrackSwitch}"
+                                          IsChecked="{Binding BetaLowOverheadTrackSwitch}"
+                                          VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+            </StackPanel>
+            </Border>
+
+            <!-- Group 3: Next-Gen Audio Engine (Beta 2 preview) -->
+            <TextBlock Classes="section-title" Text="{loc:T Settings.Section.BetaAudio}" Margin="0,16,0,8"/>
+            <Border Classes="setting-card group-card">
+            <StackPanel>
+            <Border Classes="setting-row">
+                <StackPanel Spacing="2">
+                    <TextBlock Text="{loc:T Settings.BetaAudioComingSoon}" FontSize="15" FontWeight="SemiBold" Opacity="0.75"/>
+                    <TextBlock Text="{loc:T Settings.BetaAudioComingSoonDesc}"
+                               FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+            </StackPanel>
+            </Border>
+
+            <!-- Group 4: Testing & Diagnostics -->
+            <TextBlock Classes="section-title" Text="{loc:T Settings.Section.BetaReset}" Margin="0,16,0,8"/>
+            <Border Classes="setting-card group-card">
+            <StackPanel>
+            <Border Classes="setting-row">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0" VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaResetAll}" FontSize="15" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Settings.BetaResetAllDesc}"
+                                   FontSize="12" Opacity="0.5" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <Button Grid.Column="1"
+                            AutomationProperties.Name="{loc:T Settings.BetaResetAll}"
+                            Command="{Binding ResetBetaFeaturesCommand}"
+                            Classes="pill-action"
+                            Padding="14,8"
+                            CornerRadius="999"
+                            Cursor="Hand"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{loc:T Settings.BetaResetButton}" FontSize="13" VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
+            </StackPanel>
+            </Border>
+            </StackPanel>
+
             <StackPanel x:Name="AboutTabPanel" Classes="tab-page" IsVisible="{Binding IsAboutTabVisible}" Spacing="4">
 
             <Border Classes="setting-card" Padding="18,16" Margin="0,0,0,16">
